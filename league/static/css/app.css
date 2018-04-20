@@ -1,0 +1,159 @@
+
+.card {
+  box-shadow: 0 4px 8px 0 rgb(33, 33, 33);
+  max-width: 300px;
+  margin: auto;
+  text-align: center;
+  font-family: arial;
+  background: #202025;
+  float: left;
+  margin-top: 30px;
+  margin-left: 30px;
+  border:none;
+}
+
+.title {
+  font-size: 18px;
+  position: absolute;
+  z-index:0;
+  color: transparent;
+  background: transparent;
+}
+.visible {
+  z-index: 1;
+  color:white;
+  background: #15151A;
+}
+
+.statButton {
+  width:50%;
+  display:inline-block;
+  float:left;
+  margin-bottom:0px;
+  background: #1B1B20;
+  margin-top:0px;
+}
+.visibleButton {
+  background: #15151A;
+}
+
+.summonerName {
+  margin-bottom: 5px;
+  margin-top: 5px;
+  text-overflow: ellipsis;
+  height: 1.2em;
+  white-space: nowrap;
+    overflow: hidden;
+}
+.tierImage {
+  z-index: 2;
+    position: absolute;
+    width: 364px;
+    margin: -32px;
+}
+
+a {
+  text-decoration: none;
+  font-size: 22px;
+  color: black;
+}
+.MatchHistory{
+  margin-left:400px;
+}
+.match {
+  display: grid;
+  grid-template-columns: 15% max-content  max-content 8% 10% max-content max-content;
+  grid-template-rows: auto auto auto;
+  grid-template-areas: "queue image summOne kda stats items" "queue image summTwo kda stats items" "queue champ blank kda stats items";
+  max-width: 95%;
+  max-height: 170px;
+  margin-bottom: 5px;
+  -webkit-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+}
+.champPhoto{
+  margin-top: 15px;
+}
+.champName{
+  margin: auto;
+}
+.spell_1_image{
+  width: 50px;
+  /*display: block;*/
+  margin-top: 20px;
+  margin-left: 5px;
+}
+.spell_2_image{
+  width: 50;
+  /*display: inline-block;*/
+  margin-top: 5px;
+  margin-left: 5px;
+}
+.queue { 
+  grid-area:queue; 
+  padding: 30px;
+  text-align: center;
+}
+.items{}
+.champPhoto { grid-area:image; }
+.champName { grid-area: champ; }
+.spell_1_image { grid-area: summOne; }
+.spell_2_image { grid-area: summTwo; }
+.kda {
+  grid-area: kda;
+  padding:30px;
+}
+.stats {
+  grid-area: stats;
+  padding:30px;
+}
+.rune_keystone{
+  margin-left: 55px;
+  margin-top: 18px;
+  grid-area:summOne;
+  width:50px;
+}
+.rune_secondary_style_icon{
+  margin-left: 64px;
+  margin-top: 12px;
+  grid-area:summTwo;
+}
+.item{
+  width: 40px;
+  margin: 2px;
+}
+.items {
+  margin:auto;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: max-content max-content max-content;
+  grid-area:items;
+}
+.victory {
+  background: #2D48B5;
+}
+.defeat {
+  background: #CC4F4F;
+}
+img {
+  border-radius: 5px !important;
+}
+.blank {
+  filter: brightness(0) opacity(0.4);
+}
+.title p {
+  color: inherit;
+}
+
+.title img {
+  display: none;
+}
+
+.visible img {
+  display: initial;
+}
+.team {
+  display: grid;
+  grid-template-columns: max-content max-content;
+}

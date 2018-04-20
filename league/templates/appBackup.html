@@ -1,0 +1,119 @@
+{% extends "Header.html" %}
+<!-- <div class ="container">
+	<img src = {{Profile_Image}}  width="100">
+
+	<h1>{{Summoner_Name}}</h1>
+</div>
+<div class="container ">
+	
+
+    <h2 "> {{Solo_Stats}} </h2> 
+
+</div>-->
+
+
+{% block header %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+.card {
+  box-shadow: 0 4px 8px 0 rgb(33, 33, 33);
+  max-width: 300px;
+  margin: auto;
+  text-align: center;
+  font-family: arial;
+  background: #202025;
+  margin-top: 30px;
+  margin-left: 30px;
+  border:none;
+}
+
+.title {
+  color: White;
+  font-size: 18px;
+  position: absolute;
+  background: #15151A;
+  z-index:0;
+  color: transparent;
+}
+.visible {
+	z-index: 1;
+	color:white;
+}
+
+.statButton {
+	width:50%;
+	display:inline-block;
+	float:left;
+	margin-bottom:0px;
+	background: #1B1B20;
+	margin-top:0px;
+}
+.visibleButton {
+	background: #15151A;
+}
+
+.summonerName {
+	margin-bottom: 5px;
+	margin-top: 5px;
+	text-overflow: ellipsis;
+	height: 1.2em;
+	white-space: nowrap;
+    overflow: hidden;
+}
+.tierImage {
+	z-index: 2;
+    position: absolute;
+    width: 364px;
+    margin: -32px;
+}
+
+a {
+  text-decoration: none;
+  font-size: 22px;
+  color: black;
+}
+
+
+
+</style>
+<script>
+	function runClick(id,other)
+	{
+		document.getElementById(id).classList.add("visible");
+		document.getElementById(id + "Button").classList.add("visibleButton");
+		document.getElementById(other).classList.remove("visible");
+		document.getElementById(other + "Button").classList.remove("visibleButton");
+	}
+</script>
+{% endblock %}
+{% block content %}
+
+<body>
+
+
+<div class="card">
+  {% load static %}
+  {% if has_stats %}
+  <img src = "{% static '' %}img/{{highest_tier}}.png" class = "tierImage">
+  {% endif %}
+  <img src={{Profile_Image}} alt="ProfileImage" style="width:100%">
+  <h1 class = "summonerName">{{Summoner_Name}}</h1>
+  {% if has_stats %}
+  <div>
+  	<button id="soloButton" onclick="runClick('solo','flex')" class="statButton visibleButton">Solo Stats</button>
+  	<button id="flexButton" onclick="runClick('flex','solo')" class="statButton">Flex Stats</button>
+  </div>
+  <div>
+  	<p id="solo" class = "title visible">{{Solo_League}} {{Solo_Rank_Tier}} {{Solo_LP}} {{Solo_Wins_Losses}} {{Solo_WR}} {{Solo_Streak}}</p>
+  	<p id="flex" class = "title">{{flex_League}} {{flex_Rank_Tier}} {{flex_LP}} {{flex_Wins_Losses}} {{flex_WR}} {{flex_Streak}}</p>
+  </div>
+  {% else %}
+
+  {% endif %}
+  <div style="margin: 24px 0;">
+
+ </div>
+</div>
+</body>
+</html>
+{% endblock %}

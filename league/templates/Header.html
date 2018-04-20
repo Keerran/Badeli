@@ -1,0 +1,145 @@
+
+<html>
+    <head>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        {% load static %}
+        <link rel="stylesheet" href="{% static "css/login.css" %}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <style>
+          * {
+            color: #EFEFEF;
+          }
+          input[type="text"] {
+            color: black;
+          }
+          #logout {
+            width:200px;
+            float: right;
+          }
+          #search {
+            margin: auto;
+            display: inline-flex;
+          }
+          nav > form {
+            margin-bottom:0;
+          }
+          #search > input[type="text"] {
+            width: 300% !important;
+            border-top-left-radius: .25rem;
+            border-bottom-left-radius: .25rem;
+          }
+          #search > button {
+
+            border-top-right-radius: .25rem;
+            border-bottom-right-radius: .25rem;
+          }
+          nav {
+                background-color: #303035!important;
+    -webkit-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+    box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+          }
+        </style>
+        {% block header %}
+        {% endblock %}
+    </head>
+    <body>
+
+
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+        <a class="navbar-brand" href="/">Home</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        {% if user.is_authenticated %}
+        <!-- if user is logged in then: -->
+        <form id="search"  action = '/search/' method = 'GET'>
+        <input type="text" name ='summonerName' placeholder="Summoner Name..">
+         <button type="submit">.gg</button>
+        </form>
+
+
+        {% else %}
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link"  href="/signup">Sign Up</a>
+            </li>
+          </ul>
+        </div>
+        {% endif %}
+
+
+        
+
+      
+        
+        
+        
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+
+
+
+{% if user.is_authenticated %}
+  <!-- if user is logged in then: -->
+  <form method="GET" action="/logout">
+    {% csrf_token %}
+    <button type="submit" id="logout" class="btn btn-success">Logout</button>
+  </form>
+{% else %}
+
+  <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button>
+
+  <div id="id01" class="modal">
+
+    <form class="modal-content animate" action="/login/" method="POST">{% csrf_token %}
+      <div class="imgcontainer">
+        <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+        <img src="{% static "img/badelogo.png" %}" class="avatar"/>
+      </div>
+
+      <div class="container">-
+        <label for="username"><b  style = "color: rgb(0, 0, 0) !important;">Username</b></label>
+        <input type="text" placeholder="Enter Username" name="username" required style = "color: rgb(0, 0, 0) !important;">
+
+        <label for="psw"><b style = "color: rgb(0, 0, 0) !important;">Password</b></label>
+        <input type="password" placeholder="Enter Password" name="psw" required>
+          
+        <button type="submit" value="Submit">Login</button>
+        <label>
+          <input type="checkbox" checked="checked" name="remember"> Remember me
+        </label>
+      </div>
+
+      <div class="container" style="background-color:#f1f1f1">
+        <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
+        <span class="psw">Forgot <a href="#">password?</a></span>
+      </div>
+    </form>
+  </div>
+
+
+  <script>
+  // Get the modal
+  var modal = document.getElementById('id01');
+
+  // When the user clicks anywhere outside of the modal, close it
+  window.onclick = function(event) {
+      if (event.target == modal) {
+          modal.style.display = "none";
+      }
+  }
+  </script>
+{% endif %}
+</nav>
+{% block content %}
+{% endblock %}
+</body>
+
+</html>
+
