@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class MysiteConfig(AppConfig):
+class BadeliConfig(AppConfig):
     name = 'league'

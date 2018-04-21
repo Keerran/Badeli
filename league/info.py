@@ -1,6 +1,3 @@
-from .models import *
-from riotwatcher import RiotWatcher
-
 from riotwatcher import RiotWatcher
 
 watcher = RiotWatcher('RGAPI-482a55db-9abb-483d-a569-919b4cb70be1')

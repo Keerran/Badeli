@@ -7,6 +7,7 @@ from riotwatcher import RiotWatcher
 
 from riotwatcher import RiotWatcher
 
+
 def index(request):
 	watcher = RiotWatcher('RGAPI-1adb2016-809b-4d86-b836-661eedceae00')
 
@@ -22,5 +23,5 @@ def index(request):
 
 	# Lets some champions
 	static_champ_list = watcher.static_data.champions(my_region, locale, version, tags)
-	static_champ_list_STR = str(static_champ_list)
-	return HttpResponse(static_champ_list_STR)
+	static_champ_list_str = str(static_champ_list)
+	return HttpResponse(static_champ_list_str)

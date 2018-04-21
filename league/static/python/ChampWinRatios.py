@@ -56,7 +56,7 @@ async def main(loop, executor, matches, key, accountID):
 	return games,time
 
 def ChampWinRatios(mode, accountID, summonerID, summonerName, key):
-	season = Season()
+	season = season()
 	region = 'euw1'
 	champ_stats = {}
 	if mode == 'solo':
