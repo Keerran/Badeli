@@ -100,7 +100,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-#Authentication backends
+# Authentication backends
 
 AUTHENTICATION_BACKENDS = (
 

@@ -6,7 +6,7 @@ from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
 from .static.python.RSA import generate, encrypt, decrypt
 # from .static.python.loadChampData import loadChampData
-from .static.python.APIKey import api_key
+from .static.python.APIKey import riot_key
 
 
 class Item(models.Model):
@@ -57,31 +57,31 @@ class Summoner(AbstractUser):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            APIKeyValue = api_key()
-            watcher = RiotWatcher(APIKeyValue)
+            api_key = riot_key()
+            watcher = RiotWatcher(api_key)
             my_region = 'euw1'
-            Account = watcher.summoner.by_name(my_region, self.summoner_name)
-            self.accountID = Account["accountId"]
-            self.profileIconId = Account["profileIconId"]
-            self.summonerID = Account["id"]
-            self.summonerLevel = Account["summonerLevel"]
-            self.summoner_name = Account["name"]
+            account = watcher.summoner.by_name(my_region, self.summoner_name)
+            self.accountID = account["accountId"]
+            self.profileIconId = account["profileIconId"]
+            self.summonerID = account["id"]
+            self.summonerLevel = account["summonerLevel"]
+            self.summoner_name = account["name"]
         super().save(*args, **kwargs)
 
     def set_password(self, UnsafePassword):
-        pubKey = "2257, 47"
-        encryptedPassword = (encrypt(UnsafePassword, pubKey))
+        pub_key = "2257, 47"
+        encrypted_password = (encrypt(UnsafePassword, pub_key))
         # uses RSA encryption to encrypt the password
-        self.password = encryptedPassword
+        self.password = encrypted_password
 
     def check_password(self, UnsafePassword):
-        pubKey = "2257, 47"
-        encryptedPassword = (encrypt(UnsafePassword, pubKey))
-        return self.password == encryptedPassword
+        pub_key = "2257, 47"
+        encrypted_password = (encrypt(UnsafePassword, pub_key))
+        return self.password == encrypted_password
 
 
 class Spell(models.Model):
-    spellID = models.IntegerField(max_length=100)
+    spellID = models.IntegerField()
     spellKey = models.CharField(max_length=100)
     spellName = models.CharField(max_length=100)
     image = models.CharField(max_length=100)

@@ -5,7 +5,7 @@ from ..static.python import APIKey
 from riotwatcher import RiotWatcher
 from django.db import migrations
 def genChampions(apps, schema_editor):
-	Key = APIKey.api_key()
+	Key = APIKey.riot_key()
 	watcher = RiotWatcher(Key)
 	region = 'na1'
 	db_alias = schema_editor.connection.alias

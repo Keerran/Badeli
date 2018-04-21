@@ -1,11 +1,15 @@
-from .APIKey import *
 from riotwatcher import RiotWatcher
 from league.models import *
 from requests import HTTPError
 from league.models import ChampStat, Champion, Summoner
-import asyncio,concurrent
+import asyncio
+import concurrent
+
+from league.static.python.APIKey import cur_season
+
+
 class Stats:
-	def __init__(self,champion,wins,kills,deaths,assists,games):
+	def __init__(self, champion, wins, kills, deaths, assists, games):
 		self.champion = champion
 		c = Champion.objects.get(pk=champion)
 		self.name = c.name
@@ -16,13 +20,14 @@ class Stats:
 		self.assists = assists
 		self.games = games
 
-def blocking(m, key, accountID):
-	Match = key.match.by_id("euw1", m["gameId"])
 
-	for player in Match['participantIdentities']:
+def blocking(m, key, accountID):
+	match = key.match.by_id("euw1", m["gameId"])
+
+	for player in match['participantIdentities']:
 		if player['player']['accountId'] == accountID or player['player']['currentAccountId'] == accountID:
-			participantID = player['participantId']
-			participant = Match['participants'][participantID-1]
+			participant_id = player['participantId']
+			participant = match['participants'][participant_id - 1]
 			stats = participant['stats']
 			champion = participant['championId']
 			break
@@ -30,15 +35,17 @@ def blocking(m, key, accountID):
 	kills = stats['kills']
 	deaths = stats['deaths']
 	assists = stats['assists']
-	time = Match['gameCreation'] + 1
-	return Stats(champion,win,kills,deaths,assists,1),time
-	# champStats = {}
-	# if champion in champStats:
-	# 	s = champStats[champion]
-	# 	champStats[champion] = Stats(champion,s.wins+win, s.kills+kills, s.deaths+deaths, s.assists+assists, s.games+1)
-	# else:
-	# 	champStats[champion] = Stats(champion,win,kills,deaths,assists, 1)
-	# return champStats
+	time = match['gameCreation'] + 1
+	return Stats(champion, win, kills, deaths, assists, 1), time
+
+
+# champStats = {}
+# if champion in champStats:
+# 	s = champStats[champion]
+# 	champStats[champion] = Stats(champion,s.wins+win, s.kills+kills, s.deaths+deaths, s.assists+assists, s.games+1)
+# else:
+# 	champStats[champion] = Stats(champion,win,kills,deaths,assists, 1)
+# return champStats
 
 
 async def main(loop, executor, matches, key, accountID):
@@ -53,34 +60,38 @@ async def main(loop, executor, matches, key, accountID):
 	games = [x[0] for x in results]
 	time = max([x[1] for x in results])
 	print(len(results))
-	return games,time
+	return games, time
 
-def ChampWinRatios(mode, accountID, summonerID, summonerName, key):
-	season = season()
+
+def champ_win_ratios(mode, accountID, summonerID, summonerName, key):
+	season = cur_season()
 	region = 'euw1'
 	champ_stats = {}
 	if mode == 'solo':
 		mode = 420
 	elif mode == 'flex':
 		mode = 440
-	champions = Champion.objects.all()
-	beginIndex = 0
-	c = ChampStat.objects.filter(summoner_id=summonerID,queue_id=mode,season=season)
+	begin_index = 0
+	c = ChampStat.objects.filter(summoner_id=summonerID, queue_id=mode, season=season)
 	if c.exists():
 		begin_time = c[0].last_date
 	else:
 		begin_time = None
 	try:
-		ChampMatchHistory= key.match.matchlist_by_account(region, accountID, begin_time = begin_time, begin_index = beginIndex, queue = str(mode), season = str(season))['matches']
-		matches = list(ChampMatchHistory)
+		champ_match_history = \
+			key.match.matchlist_by_account(region, accountID, begin_time=begin_time, begin_index=begin_index,
+											queue=str(mode), season=str(season))['matches']
+		matches = list(champ_match_history)
 	except Exception:
-		ChampMatchHistory = []
+		champ_match_history = []
 		matches = []
-	while ChampMatchHistory != []:
-		beginIndex += 100
+	while champ_match_history:
+		begin_index += 100
 		try:
-			ChampMatchHistory= key.match.matchlist_by_account(region, accountID, begin_time = begin_time, begin_index = beginIndex, queue = str(mode), season = str(season))['matches']
-			matches += ChampMatchHistory
+			champ_match_history = \
+				key.match.matchlist_by_account(region, accountID, begin_time=begin_time, begin_index=begin_index,
+												queue=str(mode), season=str(season))['matches']
+			matches += champ_match_history
 		except Exception:
 			break
 
@@ -88,20 +99,21 @@ def ChampWinRatios(mode, accountID, summonerID, summonerName, key):
 
 	executor = concurrent.futures.ThreadPoolExecutor(max_workers=100)
 	loop = asyncio.new_event_loop()
-	if matches == []:
+	if not matches:
 		games = []
 	else:
 		try:
-			games, time = loop.run_until_complete(main(loop,executor, matches, key, accountID))
+			games, time = loop.run_until_complete(main(loop, executor, matches, key, accountID))
 		finally:
 			loop.close()
 	print("HELLO")
 	for game in games:
 		if game.champion in champ_stats:
 			s = champ_stats[game.champion]
-			champ_stats[game.champion] = Stats(game.champion,s.wins+game.wins, s.kills+game.kills, s.deaths+game.deaths, s.assists+game.assists, s.games+1)
+			champ_stats[game.champion] = Stats(game.champion, s.wins + game.wins, s.kills + game.kills,
+												s.deaths + game.deaths, s.assists + game.assists, s.games + 1)
 		else:
-			champ_stats[game.champion] = Stats(game.champion,game.wins,game.kills,game.deaths,game.assists, 1)
+			champ_stats[game.champion] = Stats(game.champion, game.wins, game.kills, game.deaths, game.assists, 1)
 	values = list(champ_stats.values())
 	values = sorted(values, key=lambda x: x.games, reverse=True)
 	for value in values:
@@ -109,7 +121,7 @@ def ChampWinRatios(mode, accountID, summonerID, summonerName, key):
 		value.deaths /= value.games
 		value.assists /= value.games
 		champ = Champion.objects.get(pk=value.champion)
-		stat = ChampStat.objects.filter(champion_id=champ,summoner_id=summonerID,queue_id=mode,season=season)
+		stat = ChampStat.objects.filter(champion_id=champ, summoner_id=summonerID, queue_id=mode, season=season)
 		if stat.exists():
 			stat = stat[0]
 			value.games += stat.games
@@ -122,15 +134,15 @@ def ChampWinRatios(mode, accountID, summonerID, summonerName, key):
 			stat.save()
 		else:
 			ChampStat.objects.create(
-					champion_id = champ,
-					summoner_id = summonerID,
-					queue_id = mode,
-					kills = value.kills,
-					deaths = value.deaths,
-					assists = value.assists,
-					wins = value.wins,
-					games= value.games,
-					last_date = time,
-					season = season,
+				champion_id=champ,
+				summoner_id=summonerID,
+				queue_id=mode,
+				kills=value.kills,
+				deaths=value.deaths,
+				assists=value.assists,
+				wins=value.wins,
+				games=value.games,
+				last_date=time,
+				season=season,
 			).save()
-	return ChampStat.objects.filter(summoner_id=summonerID, season = season, queue_id = mode)
+	return ChampStat.objects.filter(summoner_id=summonerID, season=season, queue_id=mode)

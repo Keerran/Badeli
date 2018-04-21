@@ -5,9 +5,9 @@ from league.constants import queues, runes
 from .forms import SignUpForm
 from .models import *
 from requests import HTTPError
-from .static.python.APIKey import api_key
+from .static.python.APIKey import riot_key
 import time
-from .static.python.ChampWinRatios import ChampWinRatios
+from .static.python.ChampWinRatios import champ_win_ratios
 
 tiers = ["", "bronze", "silver", "gold", "platinum", "diamond", "master", "challenger"]
 
@@ -246,9 +246,10 @@ class App(TemplateView):
 
 class Search(TemplateView):
 
+	@staticmethod
 	def display_stats(stats):
 		league = stats["leagueName"]
-		hot_streak = stats["hot_streak"]
+		hot_streak = stats["hotStreak"]
 		rank_tier = str(stats["tier"]).title() + ' ' + str(stats["rank"])
 		lp = str(stats["leaguePoints"]) + 'lp / '
 		wins_losses = str(stats["wins"]) + 'W' + ' ' + str(stats["losses"]) + 'L'
@@ -260,7 +261,7 @@ class Search(TemplateView):
 	def get(self, request, **kwargs):
 		# return render(request, 'app.html', context =None)
 		# def post(self, request, **kwargs):
-		api_key = api_key()
+		api_key = riot_key()
 		key = RiotWatcher(api_key)
 		region = 'euw1'
 		profile_url_base = '//opgg-static.akamaized.net/images/profile_icons/profileIcon[x].jpg'
@@ -331,11 +332,11 @@ class Search(TemplateView):
 		if solo_stats != {}:
 			solo_tier = solo_stats["tier"]
 			solo_stats_display = Search.display_stats(solo_stats)
-			solo_win_rate = ChampWinRatios('solo', account_id, summoner_id, summoner_name_search, key)
+			solo_win_rate = champ_win_ratios('solo', account_id, summoner_id, summoner_name_search, key)
 		if flex_stats != {}:
 			flex_tier = flex_stats["tier"]
 			flex_stats_display = Search.display_stats(flex_stats)
-			flex_win_rate = ChampWinRatios('flex', account_id, summoner_id, summoner_name_search, key)
+			flex_win_rate = champ_win_ratios('flex', account_id, summoner_id, summoner_name_search, key)
 		highest_tier = ""
 		if flex_stats == {} and solo_stats == {}:
 			return render(request, 'App.html', {'has_stats': False, 'Profile_Image': profile_url,
