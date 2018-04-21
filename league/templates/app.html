@@ -78,9 +78,11 @@ a {
 }
 .match {
   display: grid;
-  grid-template-columns: 15% max-content  max-content 8% 10% max-content max-content max-content;
+  grid-template-columns: 15% max-content  max-content 8% 10% max-content max-content max-content max-content;
   grid-template-rows: auto auto auto;
-  grid-template-areas: "queue image summOne kda stats items teams" "queue image summTwo kda stats items teams" "queue champ blank kda stats items teams";
+  grid-template-areas:  "queue image summOne kda stats items trinket teams"
+                        "queue image summTwo kda stats items trinket teams"
+                        "queue champ blank kda stats items trinket teams";
   max-width: 95%;
   max-height: 170px;
   margin-bottom: 5px;
@@ -174,7 +176,7 @@ img {
   display: initial;
 }
 .team {
-  margin-left: 50px;
+  margin-left: 10px;
   display: grid;
   grid-template-columns: 175px 175px;
   grid-template-rows: auto auto auto auto auto;
@@ -196,6 +198,11 @@ img {
   color: #CCC;
   text-decoration:none;
  }
+.trinket {
+    grid-area: trinket;
+    vertical-align: middle;
+    margin: auto auto auto 5px;
+}
 </style>
 
 <script>
@@ -230,7 +237,7 @@ img {
       <p>{{Solo.league}} {{Solo.tier}} {{Solo.lp}} {{Solo.winsLosses}} {{Solo.winRatio}} {{Solo.hotStreak}}</p>
       {% for champ in SoloChamps %}
       <div class="champStat" style="display:inline-block">
-        <img src = {{champ.champion_id.image}} style = "width: 60px">
+        <img src="{{champ.champion_id.image}}" style = "width: 60px">
         <p style="display:inline-block">{{champ.champion_id.name}} {{champ.wins}} {{champ.kills|floatformat:1}}/{{champ.deaths|floatformat:1}}/{{champ.assists|floatformat:1}} {{champ.games}}</p>
       </div>
       {% endfor %}
@@ -239,7 +246,7 @@ img {
       <p>{{Flex.league}} {{Flex.tier}} {{Flex.lp}} {{Flex.winsLosses}} {{Flex.winRatio}} {{Flex.hotStreak}}</p>
       {% for champ in FlexChamps %}
       <div class="champStat">
-        <img src = {{champ.champion_id.image}} style = "width: 60px">
+        <img src="{{champ.champion_id.image}}" style = "width: 60px">
         <p style="display:inline-block">{{champ.champion_id.name}} {{champ.wins}} {{champ.kills|floatformat:1}}/{{champ.deaths|floatformat:1}}/{{champ.assists|floatformat:1}} {{champ.games}}</p>
       </div>
       {% endfor %}
@@ -263,12 +270,12 @@ img {
         <div> {{player.win}} </div>
         <div> {{match.duration}} </div>
       </div>
-      <img src={{player.champPhoto}} class = "champPhoto"}>
+      <img src="{{player.champPhoto}}" class = "champPhoto">
       <div class ="champName"> {{player.champName}} </div>
-      <img src = {{player.spell_1_image}} class = "spell_1_image">
-      <img src = {{player.spell_2_image}} class="spell_2_image">
-      <img src= {{player.rune_main_1_icon}} class = "rune_keystone"> 
-      <img src ={{player.rune_secondary_style_icon}} class = "rune_secondary_style_icon">  
+      <img src="{{player.spell_1_image}}" class = "spell_1_image">
+      <img src="{{player.spell_2_image}}" class="spell_2_image">
+      <img src="{{player.rune_main_1_icon}}" class = "rune_keystone">
+      <img src="{{player.rune_secondary_style_icon}}" class = "rune_secondary_style_icon">
       <div class="kda"> {{player.KDA}} </div>
       <div class="stats">
         <div> {{player.level}} </div>
@@ -276,19 +283,23 @@ img {
       </div>
       <div class ="items">
         {% for item in player.item_images %}
-          {% if item == "http://stelar7.no/cdragon/latest/items/0.png"%}
+          {% if item == ""%}
           <img src = "/static/img/SKTblank.png" id = "item{{forloop.counter0}}" class = "item blank">
           {% else %}
-          <img src = {{item}} id = "item{{forloop.counter0}}" class = "item">
+          <img src = "{{item}}" id = "item{{forloop.counter0}}" class = "item">
           {% endif %}
         <!--<img src = {{Trinket}} > -->
         {% endfor %}
       </div>
-      {% endwith %}
+        {% if player.trinket_image == "" %}
+          <img src = "/static/img/SKTblank.png" class = "item blank trinket">
+        {% else %}
+          <img src="{{ player.trinket_image }}" class = "item trinket">
+        {% endif %}      {% endwith %}
       <div class = "team">
         {% for player in match.participants %}
           <div>
-            <img src = {{player.champPhoto}} style = "width: 30px;" >
+            <img src="{{player.champPhoto}}" style = "width: 30px;" >
             <p style="margin-bottom:0; display: inline-block;"><a  href = "/search/?summonerName={{player.summonerName}}">{{player.summonerName}}</a></p> 
           </div>
         {% endfor %}

@@ -74,7 +74,7 @@ def set_password(self, UnsafePassword):
 	self.password = encrypted_password
 
 
-def myLogin(request):
+def badeli_login(request):
 	pubKey = "2257, 47"
 	if request.method == 'POST':
 		username = request.POST.get('username')
@@ -111,19 +111,20 @@ class Match:
 	def __init__(self, gameInfo, accountID, summonerID, summoner_name, key):
 		region = 'euw1'
 		self.accountID = accountID
+		summoner = cass.Summoner(account=accountID)
 		self.summonerID = summonerID
 		self.summonerName = summoner_name
 		self.game = gameInfo
-		self.timestamp = self.game['timestamp']
-		self.gameID = self.game['gameId']
-		self.role = self.game['role']
-		self.lane = self.game['lane']
-		self.championID = self.game['champion']
-		match = key.match.by_id(region, self.gameID)
+		self.player_stats = gameInfo.participants[summoner]
+		self.timestamp = self.game.creation
+		self.gameID = self.game.id
+		# self.role = self.game.role
+		# self.lane = self.game.lane
+		self.championID = self.player_stats.champion.id
+		# match = key.match.by_id(region, self.gameID)
 
-		self.queueType = match['queueId']
-		self.queueID = self.queueType
-		self.queueType = queues[int(self.queueID)][1]
+		self.queueID = gameInfo.queue.id
+		self.queueType = queues[self.queueID][1]
 		self.queueMap = queues[self.queueID][0]
 		"""
 		The for loop below loops through the participants in the http request to find the id of the summoner 
@@ -133,61 +134,62 @@ class Match:
 		defined as stats
 		"""
 
-		self.durationSeconds = match['gameDuration']
+		self.durationSeconds = gameInfo.duration.seconds
 		self.durationMinutes = int(self.durationSeconds) // 60
 		self.duration = time.strftime("%M:%S", time.gmtime(self.durationSeconds))
 
 		self.participants = []
-		for player in match['participantIdentities']:
-			data = player['player']
-			participant_id = player['participantId']
-			participant = match['participants'][participant_id - 1]
-			summoner_name = player['player']['summonerName']
-			if player['player']['accountId'] == accountID or player['player']['currentAccountId'] == accountID:
-				self.player = Player(self.durationMinutes, participant, summoner_name)
-			self.participants.append(Player(self.durationMinutes, participant, summoner_name))
+		player = gameInfo.participants[summoner]
+		self.player = Player(self.durationMinutes, player, summoner_name)
+		for player in gameInfo.participants:
+			# data = player['player']
+			# participant_id = player['participantId']
+			# participant = match['participants'][participant_id - 1]
+			summoner_name = player.summoner.name
+			self.participants.append(Player(self.durationMinutes, player, summoner_name))
 
 
 class Player:
 	def __init__(self, durationMinutes, participant, summonerName):
-		stats = participant['stats']
-		self.win = stats['win']
+		stats = participant.stats
+		self.win = stats.win
 		if self.win:
 			self.win = 'Victory'
 		else:
 			self.win = 'Defeat'
-		champ = Champion.objects.get(champion_id=participant['championId'])
+		champ = Champion.objects.get(champion_id=participant.champion.id)
 		self.champPhoto = champ.image
 		self.champName = champ.name
 		self.summonerName = summonerName
-		self.spell_1 = Spell.objects.get(spellID=participant['spell1Id'])
-		self.spell_2 = Spell.objects.get(spellID=participant['spell2Id'])
-		self.KDA = "%s/%s/%s" % (stats['kills'], stats['deaths'], stats['assists'])
-		if stats['deaths'] != 0:
-			self.KDA_ratio = (stats['assists'] + stats['kills']) / stats['deaths']
-		self.preLevel = stats['champLevel']
+		self.spell_1 = Spell.objects.get(spellID=participant.summoner_spell_d.id)
+		self.spell_2 = Spell.objects.get(spellID=participant.summoner_spell_f.id)
+		self.KDA = "%s/%s/%s" % (stats.kills, stats.deaths, stats.assists)
+		if stats.deaths != 0:
+			self.KDA_ratio = (stats.assists + stats.kills) / stats.deaths
+		self.preLevel = stats.level
 		self.level = 'Level' + str(self.preLevel)
-		self.baseCs = stats['totalMinionsKilled']
+		self.baseCs = stats.total_minions_killed
 		self.csPerMin = int(self.baseCs) / durationMinutes
 		self.csPerMin = "%.2f" % self.csPerMin
 		self.cs = str(self.baseCs) + ' (%s) cs' % self.csPerMin
 		self.spell_2_image = self.spell_2.image
 		self.spell_1_image = self.spell_1.image
-		self.rune_main_1_id = stats['perk0']
-		self.rune_main_2_id = stats['perk1']
-		self.rune_main_3_id = stats['perk2']
-		self.rune_main_4_id = stats['perk3']
-		self.rune_secondary_1_id = stats['perk4']
-		self.rune_secondary_2_id = stats['perk5']
-		self.rune_main_style_id = stats['perkPrimaryStyle']
-		self.rune_secondary_style_id = stats['perkSubStyle']
+		self.runes = list(participant.runes.keys())
+		self.rune_main_1 = self.runes[0]
+		self.rune_main_2 = self.runes[1]
+		self.rune_main_3 = self.runes[2]
+		self.rune_main_4 = self.runes[3]
+		self.rune_secondary_1 = self.runes[4]
+		self.rune_secondary_2 = self.runes[5]
+		self.rune_main_style_id = self.runes[0].id - self.runes[0].id % 100
+		self.rune_secondary_style_id = self.runes[4].id - self.runes[4].id % 100
 		self.runePrefix = 'http://stelar7.no/cdragon/latest/perks'
-		self.rune_main_1_icon = self.runePrefix + "/" + str(self.rune_main_1_id) + '.png'
-		self.rune_main_2_icon = self.runePrefix + "/" + str(self.rune_main_2_id) + '.png'
-		self.rune_main_3_icon = self.runePrefix + "/" + str(self.rune_main_3_id) + '.png'
-		self.rune_main_4_icon = self.runePrefix + "/" + str(self.rune_main_4_id) + '.png'
-		self.rune_secondary_1_icon = self.runePrefix + "/" + str(self.rune_secondary_1_id) + '.png'
-		self.rune_secondary_2_icon = self.runePrefix + "/" + str(self.rune_secondary_2_id) + '.png'
+		self.rune_main_1_icon = self.runePrefix + "/" + str(self.rune_main_1.id) + '.png'
+		self.rune_main_2_icon = self.runePrefix + "/" + str(self.rune_main_2.id) + '.png'
+		self.rune_main_3_icon = self.runePrefix + "/" + str(self.rune_main_3.id) + '.png'
+		self.rune_main_4_icon = self.runePrefix + "/" + str(self.rune_main_4.id) + '.png'
+		self.rune_secondary_1_icon = self.runePrefix + "/" + str(self.rune_secondary_1.id) + '.png'
+		self.rune_secondary_2_icon = self.runePrefix + "/" + str(self.rune_secondary_2.id) + '.png'
 		self.rune_main_style_icon = self.runePrefix + 'tyles/' + str(self.rune_main_style_id) + '.png'
 		self.rune_secondary_style_icon = self.runePrefix + 'tyles/' + str(self.rune_secondary_style_id) + '.png'
 		# self.item_1_id = stats['item1']
@@ -195,18 +197,29 @@ class Player:
 		# self.item_3_id = stats['item3']
 		# self.item_4_id = stats['item4']
 		# self.item_5_id = stats['item5']
+		self.items = participant.stats.items
 		self.item_ids = []
 		self.item_images = []
-		for i in range(6):
-			self.item_ids.append(stats['item' + str(i)])
-			self.item_images.append('http://stelar7.no/cdragon/latest/items/' + str(self.item_ids[i]) + '.png')
+		for item in self.items[:6]:
+			if item is None:
+				self.item_ids.append(None)
+				self.item_images.append("")
+				continue
+			self.item_ids.append(item.id)
+			self.item_images.append('http://stelar7.no/cdragon/latest/items/' + str(item.id) + '.png')
+		if self.items[6] is None:
+			self.trinket_id = None
+			self.trinket_image = ""
+		else:
+			self.trinket_id = self.items[6].id
+			self.trinket_image = 'http://stelar7.no/cdragon/latest/items/' + str(self.trinket_id) + '.png'
 		# self.item_1_image = 'http://stelar7.no/cdragon/latest/items/' + str(self.item_1_id) + '.png'
 		# self.item_2_image = 'http://stelar7.no/cdragon/latest/items/' + str(self.item_2_id) + '.png'
 		# self.item_3_image = 'http://stelar7.no/cdragon/latest/items/' + str(self.item_3_id) + '.png'
 		# self.item_4_image = 'http://stelar7.no/cdragon/latest/items/' + str(self.item_4_id) + '.png'
 		# self.item_5_image = 'http://stelar7.no/cdragon/latest/items/' + str(self.item_5_id) + '.png'
 
-		for rune in runes:
+		"""for rune in runes:
 			if rune['id'] == self.rune_main_1_id:
 				self.rune_main_1 = rune['name']
 				self.rune_main_1_description = rune['shortDesc']
@@ -226,7 +239,7 @@ class Player:
 				self.rune_secondary_style = rune['runePathName']
 			elif rune['id'] == self.rune_secondary_2_id:
 				self.rune_secondary_2 = rune['name']
-				self.rune_secondary_2_desc = rune['shortDesc']
+				self.rune_secondary_2_desc = rune['shortDesc']"""
 
 
 """
@@ -264,7 +277,7 @@ class Search(TemplateView):
 		api_key = riot_key()
 		key = RiotWatcher(api_key)
 		region = 'euw1'
-		profile_url_base = '//opgg-static.akamaized.net/images/profile_icons/profileIcon[x].jpg'
+		profile_url_base = '//opgg-static.akamaized.net/images/profile_icons/profileIcon{0}.jpg'
 		summoner_name_search = self.request.GET.get('summonerName')
 		solo_tier = flex_tier = ""
 		solo_stats_display = flex_stats_display = ""
@@ -278,7 +291,7 @@ class Search(TemplateView):
 			profile_icon_id = summoner.profileIconId
 			summoner_name_search = summoner.summoner_name
 
-			profile_url = profile_url_base.replace('[x]', str(profile_icon_id))
+			profile_url = profile_url_base.format(profile_icon_id)
 			print(str(summoner_id) + ' ' + str(profile_icon_id))
 
 		# I could of also stored this data in a table in my database but I am not due to hand restraints
@@ -287,7 +300,7 @@ class Search(TemplateView):
 			try:
 				summoner = key.summoner.by_name(region, summoner_name_search)
 				profile_icon_id = summoner["profileIconId"]
-				profile_url = profile_url_base.replace('[x]', str(profile_icon_id))
+				profile_url = profile_url_base.format(profile_icon_id)
 				summoner_id = summoner["id"]
 				account_id = summoner["accountId"]
 				summoner_name_search = summoner["name"]
@@ -304,7 +317,8 @@ class Search(TemplateView):
 					'Summoner_Name': summoner_name_search,
 				})
 
-		match_history = key.match.matchlist_by_account(region, account_id, end_index=5)['matches']
+		# match_history = key.match.matchlist_by_account(region, account_id, end_index=5)['matches']
+		match_history = cass.MatchHistory(summoner=cass.Summoner(account=account_id),end_index=5)
 		games = []
 		for x in match_history:
 			print(x)

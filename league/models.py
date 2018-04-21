@@ -1,5 +1,6 @@
 from django.db import models
 from riotwatcher import RiotWatcher
+import cassiopeia as cass
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth import login, authenticate
@@ -48,24 +49,25 @@ class Item(models.Model):
 #         encryptedPassword = (encrypt(UnsafePassword, pubKey))
 #         return self.password == encryptedPassword
 class Summoner(AbstractUser):
-    profileIconId = models.IntegerField(null=True, blank=True)
-    summonerLevel = models.IntegerField(null=True, blank=True)
-    summonerID = models.IntegerField(null=True, blank=True)
-    accountID = models.IntegerField(null=True, blank=True)
+    icon_id = models.IntegerField(null=True, blank=True)
+    level = models.IntegerField(null=True, blank=True)
+    summoner_id = models.IntegerField(null=True, blank=True)
+    account_id = models.IntegerField(null=True, blank=True)
     summoner_name = models.CharField(max_length=100)
     REQUIRED_FIELDS = ["email", "summoner_name"]
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            api_key = riot_key()
-            watcher = RiotWatcher(api_key)
-            my_region = 'euw1'
-            account = watcher.summoner.by_name(my_region, self.summoner_name)
-            self.accountID = account["accountId"]
-            self.profileIconId = account["profileIconId"]
-            self.summonerID = account["id"]
-            self.summonerLevel = account["summonerLevel"]
-            self.summoner_name = account["name"]
+            # api_key = riot_key()
+            # watcher = RiotWatcher(api_key)
+            # my_region = 'euw1'
+            # account = watcher.summoner.by_name(my_region, self.summoner_name)
+            account = cass.Summoner(name="Neroso")
+            self.account_id = account.account
+            self.icon_id = account.profile_icon.id
+            self.summoner_id = account.id
+            self.level = account.level
+            self.summoner_name = account.name
         super().save(*args, **kwargs)
 
     def set_password(self, UnsafePassword):

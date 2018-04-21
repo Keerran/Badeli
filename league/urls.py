@@ -27,7 +27,7 @@ urlpatterns = [
 	path('', views.HomePageView.as_view(), name='home'),
 	path('signup/', views.badeli_signup, name='signup'),
 	path('logout/', views.badeli_logout, name='logout'),
-	path('login/', views.myLogin, name='login'),
+	path('login/', views.badeli_login, name='login'),
 	path('app/', TemplateView.as_view(template_name="app.html"), name='app'),
 	path('search/', views.Search.as_view(), name='search'),
 	# path('match/')
