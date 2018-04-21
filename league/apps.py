@@ -1,6 +1,7 @@
-from django.apps import AppConfig
-from league.static.python.APIKey import riot_key
 import cassiopeia as cass
+from django.apps import AppConfig
+
+from league.static.python.APIKey import riot_key
 
 
 class LeagueConfig(AppConfig):

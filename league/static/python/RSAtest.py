@@ -1,6 +1,6 @@
+import string
 from random import randint
 
-import string
 
 def lcm(x, y):
    """This function takes two

@@ -1,12 +1,13 @@
-from django.views.generic import TemplateView
-from django.contrib.auth import logout
+import time
 
-from league.constants import queues, runes
+from django.contrib.auth import logout, login, authenticate
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView
+from requests import HTTPError
+
+from league.constants import queues
 from .forms import SignUpForm
 from .models import *
-from requests import HTTPError
-from .static.python.APIKey import riot_key
-import time
 from .static.python.ChampWinRatios import champ_win_ratios
 
 tiers = ["", "bronze", "silver", "gold", "platinum", "diamond", "master", "challenger"]
@@ -108,7 +109,7 @@ class Participant:
 
 
 class Match:
-	def __init__(self, gameInfo, accountID, summonerID, summoner_name, key):
+	def __init__(self, gameInfo, accountID, summonerID, summoner_name):  # , key):
 		region = 'euw1'
 		self.accountID = accountID
 		summoner = cass.Summoner(account=accountID)
@@ -261,22 +262,19 @@ class Search(TemplateView):
 
 	@staticmethod
 	def display_stats(stats):
-		league = stats["leagueName"]
-		hot_streak = stats["hotStreak"]
-		rank_tier = str(stats["tier"]).title() + ' ' + str(stats["rank"])
-		lp = str(stats["leaguePoints"]) + 'lp / '
-		wins_losses = str(stats["wins"]) + 'W' + ' ' + str(stats["losses"]) + 'L'
+		league = stats.name
+		hot_streak = stats.hot_streak
+		rank_tier = str(stats.tier.name).title() + ' ' + str(stats.division.value)
+		lp = str(stats.league_points) + 'lp / '
+		wins_losses = str(stats.wins) + 'W' + ' ' + str(stats.losses) + 'L'
 		win_ratio = 'Win Ratio ' + str(
-			int(int(stats["wins"]) / (int(stats["losses"]) + int(stats["wins"])) * 100)) + "%"
+			int(int(stats.wins) / (int(stats.losses) + int(stats.wins)) * 100)) + "%"
 		final = Stats(league, rank_tier, lp, wins_losses, win_ratio, hot_streak)
 		return final
 
 	def get(self, request, **kwargs):
 		# return render(request, 'app.html', context =None)
 		# def post(self, request, **kwargs):
-		api_key = riot_key()
-		key = RiotWatcher(api_key)
-		region = 'euw1'
 		profile_url_base = '//opgg-static.akamaized.net/images/profile_icons/profileIcon{0}.jpg'
 		summoner_name_search = self.request.GET.get('summonerName')
 		solo_tier = flex_tier = ""
@@ -286,24 +284,24 @@ class Search(TemplateView):
 		if Summoner.objects.filter(summoner_name=summoner_name_search).count() > 0:
 			print("Found")
 			summoner = Summoner.objects.get(summoner_name=summoner_name_search)
-			summoner_id = summoner.summonerID
-			account_id = summoner.accountID
-			profile_icon_id = summoner.profileIconId
+			summoner_id = summoner.summoner_id
+			account_id = summoner.account_id
+			icon_id = summoner.icon_id
 			summoner_name_search = summoner.summoner_name
 
-			profile_url = profile_url_base.format(profile_icon_id)
-			print(str(summoner_id) + ' ' + str(profile_icon_id))
+			profile_url = profile_url_base.format(icon_id)
+			print(str(summoner_id) + ' ' + str(icon_id))
 
 		# I could of also stored this data in a table in my database but I am not due to hand restraints
 		else:
 
 			try:
-				summoner = key.summoner.by_name(region, summoner_name_search)
-				profile_icon_id = summoner["profileIconId"]
-				profile_url = profile_url_base.format(profile_icon_id)
-				summoner_id = summoner["id"]
-				account_id = summoner["accountId"]
-				summoner_name_search = summoner["name"]
+				summoner = cass.Summoner(name=summoner_name_search)
+				account_id = summoner.account
+				icon_id = summoner.profile_icon.id
+				profile_url = profile_url_base.format(icon_id)
+				summoner_id = summoner.id
+				summoner_name_search = summoner.name
 
 			except HTTPError as error:
 				if error.response.status_code == 429:
@@ -312,27 +310,29 @@ class Search(TemplateView):
 						'''An error has occured, due to too many requests have been made to the Riot API. 
 							Please try again after '''.format(error.headers['Retry']))
 				elif error.response.status_code == 404:
-					summoner = ('There is no summoner with that name on the region ' + region)
+					summoner = ('There is no summoner with that name on the region ' + "EUW1")
 				return render(request, 'App.html', {
 					'Summoner_Name': summoner_name_search,
 				})
 
 		# match_history = key.match.matchlist_by_account(region, account_id, end_index=5)['matches']
-		match_history = cass.MatchHistory(summoner=cass.Summoner(account=account_id),end_index=5)
+		match_history = cass.MatchHistory(summoner=cass.Summoner(account=account_id), end_index=5)
 		games = []
+		summoner = cass.Summoner(id=summoner_id)
 		for x in match_history:
 			print(x)
-			games.append(Match(x, account_id, summoner_id, summoner_name_search, key))
+			games.append(Match(x, account_id, summoner_id, summoner_name_search))  # , key))
 
 		try:
-			ranked_stats = key.league.positions_by_summoner(region, summoner_id)
+			# key = RiotWatcher(riot_key())
+			# ranked_stats = key.league.positions_by_summoner("EUW1", summoner_id)
 			# print(ranked_stats)
-			flex_stats = {}
-			solo_stats = {}
-			for stats in ranked_stats:
-				if stats['queueType'] == "RANKED_SOLO_5x5":
+			flex_stats = None
+			solo_stats = None
+			for stats in summoner.league_positions:
+				if stats.queue == cass.Queue.ranked_solo_fives:
 					solo_stats = stats
-				elif stats['queueType'] == "RANKED_FLEX_SR":
+				elif stats.queue == cass.Queue.ranked_flex_fives:
 					flex_stats = stats
 
 		except HTTPError as error:
@@ -342,15 +342,15 @@ class Search(TemplateView):
 					'''An error has occured, due to too many requests have been made to the Riot API.  Please 
 					try again after '''.format(error.headers['Retry']))
 			elif error.response.status_code == 404:
-				ranked_stats = ('There is no summoner with that name on the region ' + region)
-		if solo_stats != {}:
-			solo_tier = solo_stats["tier"]
+				ranked_stats = ('There is no summoner with that name on the region ' + "EUW1")
+		if solo_stats is not None:
+			solo_tier = solo_stats.tier.name
 			solo_stats_display = Search.display_stats(solo_stats)
-			solo_win_rate = champ_win_ratios('solo', account_id, summoner_id, summoner_name_search, key)
-		if flex_stats != {}:
-			flex_tier = flex_stats["tier"]
+			solo_win_rate = champ_win_ratios('solo', summoner)
+		if flex_stats is not None:
+			flex_tier = flex_stats.tier.name
 			flex_stats_display = Search.display_stats(flex_stats)
-			flex_win_rate = champ_win_ratios('flex', account_id, summoner_id, summoner_name_search, key)
+			flex_win_rate = champ_win_ratios('flex', summoner)
 		highest_tier = ""
 		if flex_stats == {} and solo_stats == {}:
 			return render(request, 'App.html', {'has_stats': False, 'Profile_Image': profile_url,

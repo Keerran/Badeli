@@ -1,11 +1,13 @@
-from riotwatcher import RiotWatcher
-from league.models import *
-from requests import HTTPError
-from league.models import ChampStat, Champion, Summoner
 import asyncio
 import concurrent
 
+import arrow
+
+from league.models import *
+from league.models import ChampStat, Champion
 from league.static.python.APIKey import cur_season
+
+
 
 
 class Stats:
@@ -21,22 +23,18 @@ class Stats:
 		self.games = games
 
 
-def blocking(m, key, accountID):
-	match = key.match.by_id("euw1", m["gameId"])
+def blocking(m, summoner):
+	# match = key.match.by_id("euw1", m["gameId"])
 
-	for player in match['participantIdentities']:
-		if player['player']['accountId'] == accountID or player['player']['currentAccountId'] == accountID:
-			participant_id = player['participantId']
-			participant = match['participants'][participant_id - 1]
-			stats = participant['stats']
-			champion = participant['championId']
-			break
-	win = int(stats['win'])
-	kills = stats['kills']
-	deaths = stats['deaths']
-	assists = stats['assists']
-	time = match['gameCreation'] + 1
-	return Stats(champion, win, kills, deaths, assists, 1), time
+	player = m.participants[summoner]
+	stats = player.stats
+
+	win = int(stats.win)
+	kills = stats.kills
+	deaths = stats.deaths
+	assists = stats.assists
+	time = m.creation.replace(seconds=+1)
+	return Stats(player.champion.id, win, kills, deaths, assists, 1), time
 
 
 # champStats = {}
@@ -48,10 +46,10 @@ def blocking(m, key, accountID):
 # return champStats
 
 
-async def main(loop, executor, matches, key, accountID):
+async def main(loop, executor, matches, summoner):
 	print(len(matches))
 	blocking_tasks = [
-		loop.run_in_executor(executor, blocking, m, key, accountID)
+		loop.run_in_executor(executor, blocking, m, summoner)
 		for m in matches
 	]
 
@@ -63,50 +61,54 @@ async def main(loop, executor, matches, key, accountID):
 	return games, time
 
 
-def champ_win_ratios(mode, accountID, summonerID, summonerName, key):
+# noinspection PyBroadException
+def champ_win_ratios(mode, summoner):
 	season = cur_season()
-	region = 'euw1'
 	champ_stats = {}
+
 	if mode == 'solo':
-		mode = 420
+		mode = cass.Queue.ranked_solo_fives
 	elif mode == 'flex':
-		mode = 440
+		mode = cass.Queue.ranked_flex_fives
+
 	begin_index = 0
-	c = ChampStat.objects.filter(summoner_id=summonerID, queue_id=mode, season=season)
+	c = ChampStat.objects.filter(summoner_id=summoner.id, queue_id=mode.id, season=season.id)
+
 	if c.exists():
-		begin_time = c[0].last_date
+		begin_time = arrow.get(c[0].last_date)
 	else:
 		begin_time = None
-	try:
-		champ_match_history = \
-			key.match.matchlist_by_account(region, accountID, begin_time=begin_time, begin_index=begin_index,
-											queue=str(mode), season=str(season))['matches']
-		matches = list(champ_match_history)
-	except Exception:
-		champ_match_history = []
-		matches = []
-	while champ_match_history:
-		begin_index += 100
-		try:
-			champ_match_history = \
-				key.match.matchlist_by_account(region, accountID, begin_time=begin_time, begin_index=begin_index,
-												queue=str(mode), season=str(season))['matches']
-			matches += champ_match_history
-		except Exception:
-			break
 
-	print("while has ENDED")
+	# try:
+	# 	champ_match_history = \
+	# 		cass.MatchHistory(summoner=summoner, begin_time=begin_time, begin_index=begin_index,
+	# 										queue=mode, season=season)[
+	# 	#matches = list(champ_match_history)
+	# except Exception:
+	# 	champ_match_history = []
+	# 	matches = []
+	# while champ_match_history:
+	# 	begin_index += 100
+	# 	try:
+	# 		champ_match_history = \
+	# 			key.match.matchlist_by_account(summoner=summoner,begin_time=begin_time, begin_index=begin_index,
+	# 											queue=mode, season=season)
+	# 		matches += champ_match_history
+	# 	except Exception:
+	# 		break
 
+	matches = cass.MatchHistory(summoner=summoner, begin_time=begin_time, begin_index=begin_index,
+								queues=set([mode]), seasons=set([season]))
 	executor = concurrent.futures.ThreadPoolExecutor(max_workers=100)
 	loop = asyncio.new_event_loop()
 	if not matches:
 		games = []
 	else:
 		try:
-			games, time = loop.run_until_complete(main(loop, executor, matches, key, accountID))
+			games, time = loop.run_until_complete(main(loop, executor, matches, summoner))
 		finally:
 			loop.close()
-	print("HELLO")
+
 	for game in games:
 		if game.champion in champ_stats:
 			s = champ_stats[game.champion]
@@ -121,7 +123,7 @@ def champ_win_ratios(mode, accountID, summonerID, summonerName, key):
 		value.deaths /= value.games
 		value.assists /= value.games
 		champ = Champion.objects.get(pk=value.champion)
-		stat = ChampStat.objects.filter(champion_id=champ, summoner_id=summonerID, queue_id=mode, season=season)
+		stat = ChampStat.objects.filter(champion_id=champ, summoner_id=summoner.id, queue_id=mode.id, season=season.id)
 		if stat.exists():
 			stat = stat[0]
 			value.games += stat.games
@@ -135,14 +137,14 @@ def champ_win_ratios(mode, accountID, summonerID, summonerName, key):
 		else:
 			ChampStat.objects.create(
 				champion_id=champ,
-				summoner_id=summonerID,
-				queue_id=mode,
+				summoner_id=summoner.id,
+				queue_id=mode.id,
 				kills=value.kills,
 				deaths=value.deaths,
 				assists=value.assists,
 				wins=value.wins,
 				games=value.games,
-				last_date=time,
-				season=season,
+				last_date=str(time),
+				season=season.id,
 			).save()
-	return ChampStat.objects.filter(summoner_id=summonerID, season=season, queue_id=mode)
+	return ChampStat.objects.filter(summoner_id=summoner.id, season=season.id, queue_id=mode.id)

@@ -1,6 +1,5 @@
-from random import randint
-
 import string
+from random import randint
 
 
 def lcm(x, y):

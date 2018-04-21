@@ -1,13 +1,12 @@
-from django.db import models
-from riotwatcher import RiotWatcher
 import cassiopeia as cass
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth import login, authenticate
-from django.shortcuts import render, redirect
-from .static.python.RSA import generate, encrypt, decrypt
+from django.db import models
+
+from .static.python.RSA import encrypt
+
+
 # from .static.python.loadChampData import loadChampData
-from .static.python.APIKey import riot_key
 
 
 class Item(models.Model):
@@ -62,8 +61,8 @@ class Summoner(AbstractUser):
             # watcher = RiotWatcher(api_key)
             # my_region = 'euw1'
             # account = watcher.summoner.by_name(my_region, self.summoner_name)
-            account = cass.Summoner(name="Neroso")
-            self.account_id = account.account
+            account = cass.Summoner(name=self.summoner_name)
+            self.account_id = account.account.id
             self.icon_id = account.profile_icon.id
             self.summoner_id = account.id
             self.level = account.level
@@ -118,7 +117,7 @@ class ChampStat(models.Model):
     assists = models.FloatField()
     wins = models.IntegerField()
     games = models.IntegerField()
-    last_date = models.BigIntegerField()
+    last_date = models.TextField(max_length=200)
     season = models.IntegerField()
 
     class Meta:
