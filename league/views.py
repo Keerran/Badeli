@@ -164,11 +164,11 @@ class Player:
 		self.summonerName = summonerName
 		self.spell_1 = Spell.objects.get(spellID=participant.summoner_spell_d.id)
 		self.spell_2 = Spell.objects.get(spellID=participant.summoner_spell_f.id)
-		self.KDA = "%s/%s/%s" % (stats.kills, stats.deaths, stats.assists)
+		self.KDA = "%s / %s / %s" % (stats.kills, stats.deaths, stats.assists)
 		if stats.deaths != 0:
 			self.KDA_ratio = (stats.assists + stats.kills) / stats.deaths
 		self.preLevel = stats.level
-		self.level = 'Level' + str(self.preLevel)
+		self.level = 'Level ' + str(self.preLevel)
 		self.baseCs = stats.total_minions_killed
 		self.csPerMin = int(self.baseCs) / durationMinutes
 		self.csPerMin = "%.2f" % self.csPerMin
@@ -265,7 +265,7 @@ class Search(TemplateView):
 		league = stats.name
 		hot_streak = stats.hot_streak
 		rank_tier = str(stats.tier.name).title() + ' ' + str(stats.division.value)
-		lp = str(stats.league_points) + 'lp / '
+		lp = str(stats.league_points) + 'lp'
 		wins_losses = str(stats.wins) + 'W' + ' ' + str(stats.losses) + 'L'
 		win_ratio = 'Win Ratio ' + str(
 			int(int(stats.wins) / (int(stats.losses) + int(stats.wins)) * 100)) + "%"

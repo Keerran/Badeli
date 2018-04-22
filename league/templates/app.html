@@ -7,305 +7,136 @@
 <div class="container ">
   
 
-    <h2 "> {{Solo_Stats}} </h2> 
+	<h2 "> {{Solo_Stats}} </h2>
 
 </div>-->
 
 
 {% block header %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-.card {
-  box-shadow: 0 4px 8px 0 rgb(33, 33, 33);
-  max-width: 300px;
-    text-align: center;
-  font-family: arial;
-  background: #202025;
-  float: left;
-    margin: 30px auto auto 30px;
-    border:none;
-}
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	{% load static %}
+	<link rel="stylesheet" href="{% static 'css/app.css' %}">
 
-.title {
-  font-size: 18px;
-  position: absolute;
-  z-index:0;
-  color: transparent;
-  background: transparent;
-}
-.visible {
-  z-index: 1;
-  color:white;
-  background: #15151A;
-}
-
-.statButton {
-  width:50%;
-  display:inline-block;
-  float:left;
-  margin-bottom:0px;
-  background: #1B1B20;
-  margin-top:0px;
-}
-.visibleButton {
-  background: #15151A;
-}
-
-.summonerName {
-  margin-bottom: 5px;
-  margin-top: 5px;
-  text-overflow: ellipsis;
-  height: 1.2em;
-  white-space: nowrap;
-    overflow: hidden;
-}
-.tierImage {
-  z-index: 2;
-    position: absolute;
-    width: 364px;
-    margin: -32px;
-}
-
-a {
-  text-decoration: none;
-  font-size: 22px;
-  color: black;
-}
-.MatchHistory{
-  margin-left:400px;
-}
-.match {
-  display: grid;
-  grid-template-columns: 15% max-content  max-content 8% 10% max-content max-content max-content max-content;
-  grid-template-rows: auto auto auto;
-  grid-template-areas:  "queue image summOne kda stats items trinket teams"
-                        "queue image summTwo kda stats items trinket teams"
-                        "queue champ blank kda stats items trinket teams";
-  max-width: 95%;
-  max-height: 170px;
-  margin-bottom: 5px;
-  -webkit-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
-  -moz-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
-  box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
-}
-.champPhoto{
-  margin-top: 15px;
-}
-.champName{
-  margin: auto;
-}
-.spell_1_image{
-  width: 50px;
-  /*display: block;*/
-  margin-top: 20px;
-  margin-left: 5px;
-}
-.spell_2_image{
-  width: 50px;
-  /*display: inline-block;*/
-  margin-top: 5px;
-  margin-left: 5px;
-}
-.queue { 
-  grid-area:queue; 
-  padding: 30px;
-  text-align: center;
-}
-.items{}
-.champPhoto { grid-area:image; }
-.champName { grid-area: champ; }
-.spell_1_image { grid-area: summOne; }
-.spell_2_image { grid-area: summTwo; }
-.kda {
-  grid-area: kda;
-  padding:30px;
-}
-.stats {
-  grid-area: stats;
-  padding:30px;
-}
-.rune_keystone{
-  margin-left: 55px;
-  margin-top: 18px;
-  grid-area:summOne;
-  width:50px;
-}
-.rune_secondary_style_icon{
-  margin-left: 64px;
-  margin-top: 12px;
-  grid-area:summTwo;
-}
-.item{
-  width: 40px;
-  margin: 2px;
-}
-.items {
-  margin:auto;
-  display: grid;
-  grid-template-columns: auto auto auto;
-  grid-template-rows: max-content max-content max-content;
-  grid-area:items;
-}
-.victory {
-  background: #2D48B5;
-}
-.defeat {
-  background: #CC4F4F;
-}
-img {
-  border-radius: 5px !important;
-}
-.blank {
-  filter: brightness(0) opacity(0.4);
-}
-.title p {
-  color: transparent;
-}
-
-.visible p {
-  color: #EFEFEF;
-}
-
-.title img {
-  display: none;
-}
-
-.visible img {
-  display: initial;
-}
-.team {
-  margin-left: 10px;
-  display: grid;
-  grid-template-columns: 175px 175px;
-  grid-template-rows: auto auto auto auto auto;
-  grid-area:teams;
-  grid-column-gap: 10px;
-}
-.team p {
-  width: calc(100% - 35px);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  vertical-align:bottom;
-}
-.team a {
-  color: #EFEFEF;
-  font-size:1rem;
-}
-.team a:hover {
-  color: #CCC;
-  text-decoration:none;
- }
-.trinket {
-    grid-area: trinket;
-    vertical-align: middle;
-    margin: auto auto auto 5px;
-}
-</style>
-
-<script>
-  function runClick(id,other)
-  {
-    document.getElementById(id).classList.add("visible");
-    document.getElementById(id + "Button").classList.add("visibleButton");
-    document.getElementById(other).classList.remove("visible");
-    document.getElementById(other + "Button").classList.remove("visibleButton");
-  }
-</script>
+	<script>
+		function runClick(id, other) {
+			document.getElementById(id).classList.add("visible");
+			document.getElementById(id + "Button").classList.add("visibleButton");
+			document.getElementById(other).classList.remove("visible");
+			document.getElementById(other + "Button").classList.remove("visibleButton");
+		}
+	</script>
 {% endblock %}
+
 {% block content %}
 
-<body>
-<title>{{Summoner_Name}} - Badeli.gg</title>
+	<body>
+	<title>{{ Summoner_Name }} - Badeli.gg</title>
 
-<div class="card">
-  {% load static %}
-  {% if has_stats %}
-  <img src = "{% static '' %}img/{{highest_tier}}.png" class = "tierImage">
-  {% endif %}
-  <img src="{{Profile_Image}}" alt="ProfileImage" style="width:300px">
-  <h1 class = "summonerName">{{Summoner_Name}}</h1>
-  {% if has_stats %}
-  <div>
-    <button id="soloButton" onclick="runClick('solo','flex')" class="statButton visibleButton">Solo Stats</button>
-    <button id="flexButton" onclick="runClick('flex','solo')" class="statButton">Flex Stats</button>
-  </div>
-  <div>
-    <div id="solo" class = "title visible">
-      <p>{{Solo.league}} {{Solo.tier}} {{Solo.lp}} {{Solo.winsLosses}} {{Solo.winRatio}} {{Solo.hotStreak}}</p>
-      {% for champ in SoloChamps %}
-      <div class="champStat" style="display:inline-block">
-        <img src="{{champ.champion_id.image}}" style = "width: 60px">
-        <p style="display:inline-block">{{champ.champion_id.name}} {{champ.wins}} {{champ.kills|floatformat:1}}/{{champ.deaths|floatformat:1}}/{{champ.assists|floatformat:1}} {{champ.games}}</p>
-      </div>
-      {% endfor %}
-    </div>
-    <div id="flex" class = "title">
-      <p>{{Flex.league}} {{Flex.tier}} {{Flex.lp}} {{Flex.winsLosses}} {{Flex.winRatio}} {{Flex.hotStreak}}</p>
-      {% for champ in FlexChamps %}
-      <div class="champStat">
-        <img src="{{champ.champion_id.image}}" style = "width: 60px">
-        <p style="display:inline-block">{{champ.champion_id.name}} {{champ.wins}} {{champ.kills|floatformat:1}}/{{champ.deaths|floatformat:1}}/{{champ.assists|floatformat:1}} {{champ.games}}</p>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% else %}
+	<div id="card">
+		{% load static %}
+		{% if has_stats %}
+			<img src="{% static '' %}img/{{ highest_tier }}.png" class="tierImage">
+		{% endif %}
+		<img src="{{ Profile_Image }}" alt="ProfileImage" style="width:400px; border-image: url('{% static '' %}img/{{ highest_tier }}.png')">
+		<h1 class="summonerName">{{ Summoner_Name }}</h1>
 
-  {% endif %}
-  <div style="margin: 24px 0;">
+		<!--<div style="margin: 24px 0;">
+		</div> -->
+	</div>
+	<div id="stats">
+		{% if has_stats %}
+			<div>
+				<button id="soloButton" onclick="runClick('solo','flex')" class="statButton visibleButton">Solo Stats
+				</button>
+				<button id="flexButton" onclick="runClick('flex','solo')" class="statButton">Flex Stats</button>
+			</div>
+			<div>
+				<div id="solo" class="title visible">
+					<div>{{ Solo.league }} {{ Solo.tier }} {{ Solo.lp }} {{ Solo.winsLosses }} {{ Solo.winRatio }} {{ Solo.hotStreak }}</div>
+					<ul>
+					{% for champ in SoloChamps %}
+						{% load badeli_extras %}
+						<li class="champStat" style="display: grid; height:72px;">
+							<img src="{{ champ.champion_id.image }}" style="grid-area: image; width: 60px">
+							<div class="name">{{ champ.champion_id.name }}</div>
+							<div class="winRatio">{{ champ.wins|percent:champ.games }}%</div>
+							<div class="wins">{{ champ.wins }}</div>
+							<div class="kda">{{ champ.kills|floatformat:1 }} / {{ champ.deaths|floatformat:1 }} / {{ champ.assists|floatformat:1 }}</div>
+							<div class="games">{{ champ.games }} Games</div>
+						</li>
+					{% endfor %}
+					</ul>
+				</div>
+				<div id="flex" class="title">
+					<div>{{ Flex.league }} {{ Flex.tier }} {{ Flex.lp }} {{ Flex.winsLosses }} {{ Flex.winRatio }} {{ Flex.hotStreak }}</div>
+					{% for champ in FlexChamps %}
+						{% load badeli_extras %}
+						<li class="champStat" style="display: grid; height:72px;">
+							<img src="{{ champ.champion_id.image }}" style="grid-area: image; width: 60px">
+							<div class="name">{{ champ.champion_id.name }}</div>
+							<div class="winRatio">{{ champ.wins|percent:champ.games }}%</div>
+							<div class="wins">{{ champ.wins }}</div>
+							<div class="kda">{{ champ.kills|floatformat:1 }} / {{ champ.deaths|floatformat:1 }} / {{ champ.assists|floatformat:1 }}</div>
+							<div class="games">{{ champ.games }} Games</div>
+						</li>
+					{% endfor %}
+				</div>
+			</div>
+		{% else %}
 
- </div>
-</div>
-<div class = "MatchHistory">
-  <h1>Match History</h1>
-  {% for match in matches %}
-    {% with player=match.player %}
-    <div id="{{match.gameID}}" class="match {{player.win|lower}}">
-      <div class="queue">
-        <div> {{match.queueType}} </div>
-        <p></p>
-        <div> {{player.win}} </div>
-        <div> {{match.duration}} </div>
-      </div>
-      <img src="{{player.champPhoto}}" class = "champPhoto">
-      <div class ="champName"> {{player.champName}} </div>
-      <img src="{{player.spell_1_image}}" class = "spell_1_image">
-      <img src="{{player.spell_2_image}}" class="spell_2_image">
-      <img src="{{player.rune_main_1_icon}}" class = "rune_keystone">
-      <img src="{{player.rune_secondary_style_icon}}" class = "rune_secondary_style_icon">
-      <div class="kda"> {{player.KDA}} </div>
-      <div class="stats">
-        <div> {{player.level}} </div>
-        <div> {{player.cs}} </div>
-      </div>
-      <div class ="items">
-        {% for item in player.item_images %}
-          {% if item == ""%}
-          <img src = "/static/img/SKTblank.png" id = "item{{forloop.counter0}}" class = "item blank">
-          {% else %}
-          <img src = "{{item}}" id = "item{{forloop.counter0}}" class = "item">
-          {% endif %}
-        <!--<img src = {{Trinket}} > -->
-        {% endfor %}
-      </div>
-        {% if player.trinket_image == "" %}
-          <img src = "/static/img/SKTblank.png" class = "item blank trinket">
-        {% else %}
-          <img src="{{ player.trinket_image }}" class = "item trinket">
-        {% endif %}      {% endwith %}
-      <div class = "team">
-        {% for player in match.participants %}
-          <div>
-            <img src="{{player.champPhoto}}" style = "width: 30px;" >
-            <p style="margin-bottom:0; display: inline-block;"><a  href = "/search/?summonerName={{player.summonerName}}">{{player.summonerName}}</a></p> 
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-  {% endfor %}
+		{% endif %}
+	</div>
 
-</div>
-</body>
-</html>
+	<div class="matchHistory">
+		<h1>Match History</h1>
+		{% for match in matches %}
+			{% with player=match.player %}
+				<div id="{{ match.gameID }}" class="match {{ player.win|lower }}">
+				<div class="queue">
+					<div> {{ match.queueType }} </div>
+					<p></p>
+					<div> {{ player.win }} </div>
+					<div> {{ match.duration }} </div>
+				</div>
+				<img src="{{ player.champPhoto }}" class="champPhoto">
+				<div class="champName">{{ player.champName }}</div>
+				<img src="{{ player.spell_1_image }}" class="spell_1_image">
+				<img src="{{ player.spell_2_image }}" class="spell_2_image">
+				<img src="{{ player.rune_main_1_icon }}" class="rune_keystone">
+				<img src="{{ player.rune_secondary_style_icon }}" class="rune_secondary_style_icon">
+				<div class="kda"> {{ player.KDA }} </div>
+				<div class="stats">
+					<div> {{ player.level }} </div>
+					<div> {{ player.cs }} </div>
+				</div>
+				<div class="items">
+					{% for item in player.item_images %}
+						{% if item == "" %}
+							<img src="/static/img/SKTblank.png" id="item{{ forloop.counter0 }}" class="item blank">
+						{% else %}
+							<img src="{{ item }}" id="item{{ forloop.counter0 }}" class="item">
+						{% endif %}
+						<!--<img src = {{Trinket}} > -->
+					{% endfor %}
+				</div>
+				{% if player.trinket_image == "" %}
+					<img src="/static/img/SKTblank.png" class="item blank trinket">
+				{% else %}
+					<img src="{{ player.trinket_image }}" class="item trinket">
+				{% endif %}      {% endwith %}
+		<div class="team">
+			{% for player in match.participants %}
+				<div>
+					<img src="{{ player.champPhoto }}" style="width: 30px;">
+					<p style="margin-bottom:0; display: inline-block;"><a
+							href="/search/?summonerName={{ player.summonerName }}">{{ player.summonerName }}</a></p>
+				</div>
+			{% endfor %}
+		</div>
+		</div>
+		{% endfor %}
+
+	</div>
+	</body>
+	</html>
 {% endblock %}

@@ -1,159 +1,259 @@
+:root {
+	--border-color: #303035;
+	--border-color: #0F0F14;
+}
+#stats{
+    width: 400px;
+    display: grid;
+	position: absolute;
+	top: 600px;
+	left:40px;
+	border: var(--border-color) 2px solid;
+	margin-bottom: 20px;
+}
 
-.card {
-  box-shadow: 0 4px 8px 0 rgb(33, 33, 33);
-  max-width: 300px;
-  margin: auto;
-  text-align: center;
-  font-family: arial;
-  background: #202025;
-  float: left;
-  margin-top: 30px;
-  margin-left: 30px;
-  border:none;
+.match, #stats {
+	-webkit-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+	-moz-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+	box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+}
+
+.title ul {
+	padding: 0;
+	margin: 0;
+}
+
+.title > div {
+	margin: 0 10px;
+}
+
+#card {
+	box-shadow: 0 4px 8px 0 rgb(33, 33, 33);
+	width: 400px;
+	text-align: center;
+	/*background: #202025;*/
+	float: left;
+		margin: 40px auto auto 40px;
+		border:none;
 }
 
 .title {
-  font-size: 18px;
-  position: absolute;
-  z-index:0;
-  color: transparent;
-  background: transparent;
+	display:none;
+	font-size: 18px;
+	/*position: absolute;*/
+	z-index:0;
+	/*color: transparent;*/
+	background: transparent;
 }
 .visible {
-  z-index: 1;
-  color:white;
-  background: #15151A;
+	z-index: 1;
+	display:inherit;
+/*	color:white;*/
+	background: #15151A;
 }
 
 .statButton {
-  width:50%;
-  display:inline-block;
-  float:left;
-  margin-bottom:0px;
-  background: #1B1B20;
-  margin-top:0px;
+	width:50%;
+	display:inline-block;
+	float:left;
+	margin-bottom:0px;
+	background: #1B1B20;
+	margin-top:0px;
 }
 .visibleButton {
-  background: #15151A;
+	background: #15151A;
 }
 
 .summonerName {
-  margin-bottom: 5px;
-  margin-top: 5px;
-  text-overflow: ellipsis;
-  height: 1.2em;
-  white-space: nowrap;
-    overflow: hidden;
+	margin-bottom: 5px;
+	margin-top: 15px;
+	text-overflow: ellipsis;
+	height: 1.2em;
+	white-space: nowrap;
+		overflow: hidden;
 }
 .tierImage {
-  z-index: 2;
-    position: absolute;
-    width: 364px;
-    margin: -32px;
+	z-index: 2;
+	position: absolute;
+	width: 485px;
+	margin: -40px;
 }
 
 a {
-  text-decoration: none;
-  font-size: 22px;
-  color: black;
+	text-decoration: none;
+	font-size: 22px;
+	color: black;
 }
-.MatchHistory{
-  margin-left:400px;
+.matchHistory{
+	margin-left:500px;
+	margin-top: 200px;
 }
 .match {
-  display: grid;
-  grid-template-columns: 15% max-content  max-content 8% 10% max-content max-content;
-  grid-template-rows: auto auto auto;
-  grid-template-areas: "queue image summOne kda stats items" "queue image summTwo kda stats items" "queue champ blank kda stats items";
-  max-width: 95%;
-  max-height: 170px;
-  margin-bottom: 5px;
-  -webkit-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
-  -moz-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
-  box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
+	display: grid;
+	grid-template-columns: 15% repeat(2,max-content) 8% 10% repeat(4,max-content);
+	grid-template-rows: auto auto auto;
+	grid-template-areas:    "queue image summOne kda stats items trinket teams"
+							"queue image summTwo kda stats items trinket teams"
+                            "queue champ blank kda stats items trinket teams";
+	max-width: 95%;
+	max-height: 170px;
+	margin-bottom: 10px;
+    padding: 5px;
+
 }
 .champPhoto{
-  margin-top: 15px;
+	margin-top: 15px;
 }
 .champName{
-  margin: auto;
+	margin: auto;
 }
 .spell_1_image{
-  width: 50px;
-  /*display: block;*/
-  margin-top: 20px;
-  margin-left: 5px;
+	width: 50px;
+	/*display: block;*/
+	margin-top: 20px;
+	margin-left: 5px;
 }
 .spell_2_image{
-  width: 50;
-  /*display: inline-block;*/
-  margin-top: 5px;
-  margin-left: 5px;
+	width: 50px;
+	/*display: inline-block;*/
+	margin-top: 5px;
+	margin-left: 5px;
 }
 .queue { 
-  grid-area:queue; 
-  padding: 30px;
-  text-align: center;
+	grid-area:queue;
+	padding: 30px;
+	text-align: center;
 }
 .items{}
-.champPhoto { grid-area:image; }
-.champName { grid-area: champ; }
-.spell_1_image { grid-area: summOne; }
-.spell_2_image { grid-area: summTwo; }
-.kda {
-  grid-area: kda;
-  padding:30px;
+.match > .champPhoto { grid-area:image; }
+.match > .champName { grid-area: champ; }
+.match > .spell_1_image { grid-area: summOne; }
+.match > .spell_2_image { grid-area: summTwo; }
+.match > .kda {
+	grid-area: kda;
+    margin:auto;
+	font-size: larger;
+	font-weight:bold;
 }
-.stats {
-  grid-area: stats;
-  padding:30px;
+.match > .stats {
+	grid-area: stats;
+	margin:auto;
 }
-.rune_keystone{
-  margin-left: 55px;
-  margin-top: 18px;
-  grid-area:summOne;
-  width:50px;
+.match > .rune_keystone{
+	margin-left: 55px;
+	margin-top: 18px;
+	grid-area:summOne;
+	width:50px;
 }
-.rune_secondary_style_icon{
-  margin-left: 64px;
-  margin-top: 12px;
-  grid-area:summTwo;
+.match > .rune_secondary_style_icon{
+	margin-left: 64px;
+	margin-top: 12px;
+	grid-area:summTwo;
 }
-.item{
-  width: 40px;
-  margin: 2px;
+.match .item{
+	width: 40px;
+	margin: 2px;
 }
-.items {
-  margin:auto;
-  display: grid;
-  grid-template-columns: auto auto auto;
-  grid-template-rows: max-content max-content max-content;
-  grid-area:items;
+.match > .items {
+	margin:auto;
+	display: grid;
+	grid-template-columns: repeat(3, auto);
+	grid-template-rows: repeat(3,max-content);
+	grid-area:items;
 }
 .victory {
-  background: #2D48B5;
+	background: #2D48B5;
 }
 .defeat {
-  background: #CC4F4F;
+	background: #CC4F4F;
 }
 img {
-  border-radius: 5px !important;
+	border-radius: 5px !important;
 }
 .blank {
-  filter: brightness(0) opacity(0.4);
+	filter: brightness(0) opacity(0.4);
 }
-.title p {
-  color: inherit;
+.title div {
+	color: transparent;
+}
+
+.visible div {
+	color: #EFEFEF;
 }
 
 .title img {
-  display: none;
+	display: none;
 }
 
 .visible img {
-  display: initial;
+	display: initial;
 }
 .team {
-  display: grid;
-  grid-template-columns: max-content max-content;
+	margin-left: 50px;
+	display: grid;
+	grid-template-columns: repeat(2,175px);
+	grid-template-rows: repeat(5,auto);
+	grid-area:teams;
+	grid-column-gap: 10px;
+}
+.team p {
+	width: calc(100% - 35px);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	vertical-align:bottom;
+}
+.team a {
+	color: #EFEFEF;
+	font-size:1rem;
+}
+.team a:hover {
+	color: #CCC;
+	text-decoration:none;
+ }
+.match .trinket {
+	grid-area: trinket;
+	vertical-align: middle;
+	margin: auto auto auto 5px;
+}
+
+.stats div {
+	width: 100%;
+	text-align: center;
+}
+
+.champStat {
+    grid-template-columns: 60px repeat(3,auto);
+	grid-column-gap: 5px;
+    grid-template-rows: 30px 30px;
+    grid-template-areas: "image name kdaRatio winRatio" "image wins kda games";
+	padding: 5px 10px;
+	border-top: var(--border-color) 2px solid;
+}
+
+.champStat .winRatio, .champStat .games, .champStat .kda {
+	text-align: center;
+}
+
+.champStat .name {
+    grid-area: name;
+	color: white !important;
+	font-family: "Montserrat SemiBold" !important;
+}
+
+.champStat .kda {
+    grid-area: kda;
+}
+
+.champStat .winRatio {
+	grid-area: winRatio;
+}
+
+.champStat .wins {
+	grid-area: wins;
+}
+
+.champStat .games {
+	grid-area: games;
+	font-size: 1rem;
 }

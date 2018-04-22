@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
         {% load static %}
         <link rel="stylesheet" href="{% static "css/login.css" %}">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <style>
           * {
@@ -40,6 +41,10 @@
     -moz-box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
     box-shadow: 0px 5px 25px 0px rgba(0,0,0,0.75);
           }
+          * {
+		        font-family: 'Montserrat', sans-serif !important;
+	      }
+
         </style>
         {% block header %}
         {% endblock %}
