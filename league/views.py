@@ -520,40 +520,28 @@ class Search(TemplateView):
 		solo_stats_display = flex_stats_display = ""
 		solo_win_rate = []
 		flex_win_rate = []
-		if Summoner.objects.filter(summoner_name=summoner_name_search).count() > 0:
-			print("Found")
-			summoner = Summoner.objects.get(summoner_name=summoner_name_search)
-			summoner_id = summoner.summoner_id
-			account_id = summoner.account_id
-			icon_id = summoner.icon_id
-			summoner_name_search = summoner.summoner_name
 
+		try:
+			summoner = cass.Summoner(name=summoner_name_search)
+			if not summoner.exists:
+				return redirect("home")
+			account_id = summoner.account
+			icon_id = summoner.profile_icon.id
 			profile_url = profile_url_base.format(icon_id)
+			summoner_id = summoner.id
+			summoner_name_search = summoner.name
 
-		# I could of also stored this data in a table in my database but I am not due to hand restraints
-		else:
-
-			try:
-				summoner = cass.Summoner(name=summoner_name_search)
-				if not summoner.exists:
-					return redirect("home")
-				account_id = summoner.account
-				icon_id = summoner.profile_icon.id
-				profile_url = profile_url_base.format(icon_id)
-				summoner_id = summoner.id
-				summoner_name_search = summoner.name
-
-			except HTTPError as error:
-				if error.response.status_code == 429:
-					# Check documentation for explanations of error codes
-					summoner = (
-						'''An error has occured, due to too many requests have been made to the Riot API. 
-							Please try again after '''.format(error.headers['Retry']))
-				elif error.response.status_code == 404:
-					summoner = ('There is no summoner with that name on the region ' + "EUW1")
-				return render(request, 'App.html', {
-					'Summoner_Name': summoner_name_search,
-				})
+		except HTTPError as error:
+			if error.response.status_code == 429:
+				# Check documentation for explanations of error codes
+				summoner = (
+					'''An error has occured, due to too many requests have been made to the Riot API. 
+						Please try again after '''.format(error.headers['Retry']))
+			elif error.response.status_code == 404:
+				summoner = ('There is no summoner with that name on the region ' + "EUW1")
+			return render(request, 'App.html', {
+				'Summoner_Name': summoner_name_search,
+			})
 
 		# match_history = key.match.matchlist_by_account(region, account_id, end_index=5)['matches']
 		summoner = cass.Summoner(account=account_id)
