@@ -8,8 +8,6 @@ from league.models import ChampStat, Champion
 from league.static.python.APIKey import cur_season
 
 
-
-
 class Stats:
 	def __init__(self, champion, wins, kills, deaths, assists, games):
 		self.champion = champion
@@ -47,7 +45,6 @@ def blocking(m, summoner):
 
 
 async def main(loop, executor, matches, summoner):
-	print(len(matches))
 	blocking_tasks = [
 		loop.run_in_executor(executor, blocking, m, summoner)
 		for m in matches
@@ -57,11 +54,9 @@ async def main(loop, executor, matches, summoner):
 	results = [t.result() for t in completed]
 	games = [x[0] for x in results]
 	time = max([x[1] for x in results])
-	print(len(results))
 	return games, time
 
 
-# noinspection PyBroadException
 def champ_win_ratios(mode, summoner):
 	season = cur_season()
 	champ_stats = {}
@@ -71,11 +66,11 @@ def champ_win_ratios(mode, summoner):
 	elif mode == 'flex':
 		mode = cass.Queue.ranked_flex_fives
 
-	begin_index = 0
-	c = ChampStat.objects.filter(summoner_id=summoner.id, queue_id=mode.id, season=season.id)
+	c = ChampStat.objects.filter(summoner_id=summoner.id, queue_id=mode.id, season=season.id).order_by("-last_date")
 
 	if c.exists():
 		begin_time = arrow.get(c[0].last_date)
+		# print(begin_time)
 	else:
 		begin_time = None
 
@@ -97,9 +92,9 @@ def champ_win_ratios(mode, summoner):
 	# 	except Exception:
 	# 		break
 
-	matches = cass.MatchHistory(summoner=summoner, begin_time=begin_time, begin_index=begin_index,
+	matches = cass.MatchHistory(summoner=summoner, begin_time=begin_time,
 								queues=set([mode]), seasons=set([season]))
-	executor = concurrent.futures.ThreadPoolExecutor(max_workers=100)
+	executor = concurrent.futures.ThreadPoolExecutor(max_workers=123)
 	loop = asyncio.new_event_loop()
 	if not matches:
 		games = []

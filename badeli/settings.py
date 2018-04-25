@@ -26,6 +26,7 @@ SECRET_KEY = '3zi#1g_8px(tm34=g&@y-f^81k)y7qxj7z%w2sdbk^y%sgi0=e'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+AUTH_USER_MODEL = "league.Summoner"
 
 
 # Application definition
@@ -108,7 +109,6 @@ AUTHENTICATION_BACKENDS = (
 
 )
 
-AUTH_USER_MODEL = "league.Summoner"
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 

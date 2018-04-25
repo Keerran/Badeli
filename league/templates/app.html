@@ -88,6 +88,14 @@
 	</div>
 
 	<div class="matchHistory">
+		<div class="collapse-toggle">
+			{% for player in current_match.blue_team %}
+				<p>{{ player.summoner_name|safe }} {{ player.champName }} {{ player.rank }}</p>
+			{% endfor %}
+			{% for player in current_match.red_team %}
+				<p>{{ player.summoner_name|safe }} {{ player.champName }} {{ player.rank }}</p>
+			{% endfor %}
+		</div>
 		<h1>Match History</h1>
 		{% for match in matches %}
 			{% with player=match.player %}
@@ -124,14 +132,25 @@
 				{% else %}
 					<img src="{{ player.trinket_image }}" class="item trinket">
 				{% endif %}      {% endwith %}
-		<div class="team">
-			{% for player in match.participants %}
-				<div>
+		<div class="teamBlock">
+			<ul class="team blue">
+			{% for player in match.blue_team %}
+				<li>
 					<img src="{{ player.champPhoto }}" style="width: 30px;">
 					<p style="margin-bottom:0; display: inline-block;"><a
-							href="/search/?summonerName={{ player.summonerName }}">{{ player.summonerName }}</a></p>
-				</div>
+							href="/search/?summonerName={{ player.summoner_name }}">{{ player.summoner_name|safe }}</a></p>
+				</li>
 			{% endfor %}
+			</ul>
+			<ul class="team red">
+			{% for player in match.red_team %}
+				<li>
+					<img src="{{ player.champPhoto }}" style="width: 30px;">
+					<p style="margin-bottom:0; display: inline-block;"><a
+							href="/search/?summonerName={{ player.summoner_name }}">{{ player.summoner_name|safe }}</a></p>
+				</li>
+			{% endfor %}
+			</ul>
 		</div>
 		</div>
 		{% endfor %}

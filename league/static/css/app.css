@@ -3,8 +3,8 @@
 	--border-color: #0F0F14;
 }
 #stats{
-    width: 400px;
-    display: grid;
+	width: 400px;
+	display: grid;
 	position: absolute;
 	top: 600px;
 	left:40px;
@@ -70,7 +70,7 @@
 	text-overflow: ellipsis;
 	height: 1.2em;
 	white-space: nowrap;
-		overflow: hidden;
+	overflow: hidden;
 }
 .tierImage {
 	z-index: 2;
@@ -86,7 +86,7 @@ a {
 }
 .matchHistory{
 	margin-left:500px;
-	margin-top: 200px;
+	/*margin-top: 200px;*/
 }
 .match {
 	display: grid;
@@ -94,11 +94,11 @@ a {
 	grid-template-rows: auto auto auto;
 	grid-template-areas:    "queue image summOne kda stats items trinket teams"
 							"queue image summTwo kda stats items trinket teams"
-                            "queue champ blank kda stats items trinket teams";
+							"queue champ blank kda stats items trinket teams";
 	max-width: 95%;
 	max-height: 170px;
 	margin-bottom: 10px;
-    padding: 5px;
+	padding: 5px;
 
 }
 .champPhoto{
@@ -131,7 +131,7 @@ a {
 .match > .spell_2_image { grid-area: summTwo; }
 .match > .kda {
 	grid-area: kda;
-    margin:auto;
+	margin:auto;
 	font-size: larger;
 	font-weight:bold;
 }
@@ -167,6 +167,9 @@ a {
 .defeat {
 	background: #CC4F4F;
 }
+.remake {
+    background: #828A95
+}
 img {
 	border-radius: 5px !important;
 }
@@ -188,7 +191,7 @@ img {
 .visible img {
 	display: initial;
 }
-.team {
+.teamBlock {
 	margin-left: 50px;
 	display: grid;
 	grid-template-columns: repeat(2,175px);
@@ -196,18 +199,18 @@ img {
 	grid-area:teams;
 	grid-column-gap: 10px;
 }
-.team p {
+.teamBlock p {
 	width: calc(100% - 35px);
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
 	vertical-align:bottom;
 }
-.team a {
+.teamBlock a {
 	color: #EFEFEF;
 	font-size:1rem;
 }
-.team a:hover {
+.teamBlock a:hover {
 	color: #CCC;
 	text-decoration:none;
  }
@@ -223,10 +226,10 @@ img {
 }
 
 .champStat {
-    grid-template-columns: 60px repeat(3,auto);
+	grid-template-columns: 60px repeat(3,auto);
 	grid-column-gap: 5px;
-    grid-template-rows: 30px 30px;
-    grid-template-areas: "image name kdaRatio winRatio" "image wins kda games";
+	grid-template-rows: 30px 30px;
+	grid-template-areas: "image name kdaRatio winRatio" "image wins kda games";
 	padding: 5px 10px;
 	border-top: var(--border-color) 2px solid;
 }
@@ -236,13 +239,13 @@ img {
 }
 
 .champStat .name {
-    grid-area: name;
+	grid-area: name;
 	color: white !important;
 	font-family: "Montserrat SemiBold" !important;
 }
 
 .champStat .kda {
-    grid-area: kda;
+	grid-area: kda;
 }
 
 .champStat .winRatio {
@@ -256,4 +259,10 @@ img {
 .champStat .games {
 	grid-area: games;
 	font-size: 1rem;
+}
+
+.team {
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
 }

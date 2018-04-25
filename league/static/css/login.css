@@ -108,6 +108,10 @@ span.psw {
     to {transform: scale(1)}
 }
 
+#home {
+    height: 65px;
+}
+
 /* Change styles for span and cancel button on extra small screens */
 @media screen and (max-width: 300px) {
     span.psw {
