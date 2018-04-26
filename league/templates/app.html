@@ -99,7 +99,7 @@
 		<h1>Match History</h1>
 		{% for match in matches %}
 			{% with player=match.player %}
-				<div id="{{ match.gameID }}" class="match {{ player.win|lower }}">
+				<div id="{{ match.game_id }}" class="match {{ player.win|lower }}">
 				<div class="queue">
 					<div> {{ match.queue_type }} </div>
 					<p></p>

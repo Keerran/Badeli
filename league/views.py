@@ -1,3 +1,5 @@
+import asyncio
+import concurrent
 import time
 import arrow
 from datapipelines import NotFoundError
@@ -496,6 +498,30 @@ class App(TemplateView):
 	template_name = 'app.html'
 
 
+def blocking(x, summoner, summoner_name_search):
+	db = Match.objects.filter(match_id=x.id)
+	if db.exists():
+		m = MatchDB(x, summoner)
+	else:
+		m = MatchData(x, summoner.account.id, summoner.id, summoner_name_search)  # , key))
+	return m
+
+
+async def main(loop, executor, matches, summoner, summoner_name_search):
+	blocking_tasks = [
+		loop.run_in_executor(executor,blocking,x, summoner, summoner_name_search)
+		for x in matches
+	]
+
+	completed, pending = await asyncio.wait(blocking_tasks)
+	results = [t.result() for t in completed]
+	for x in results:
+		if isinstance(x, MatchData):
+			x.to_db()
+
+	return results
+
+
 class Search(TemplateView):
 
 	@staticmethod
@@ -525,7 +551,7 @@ class Search(TemplateView):
 			summoner = cass.Summoner(name=summoner_name_search)
 			if not summoner.exists:
 				return redirect("home")
-			account_id = summoner.account
+			account_id = summoner.account.id
 			icon_id = summoner.profile_icon.id
 			profile_url = profile_url_base.format(icon_id)
 			summoner_id = summoner.id
@@ -544,7 +570,6 @@ class Search(TemplateView):
 			})
 
 		# match_history = key.match.matchlist_by_account(region, account_id, end_index=5)['matches']
-		summoner = cass.Summoner(account=account_id)
 		# ms = PlayerCall.objects.filter(account_id=summoner.account.id)
 		# creation = ms.aggregate(Max('date'))['date__max']
 		ms = PlayerMatch.objects.filter(account_id=summoner.account.id)
@@ -555,16 +580,15 @@ class Search(TemplateView):
 		print("CREATION {0}".format(len(match_history)))
 		ms = ms[:10-len(match_history)]
 		games = []
-		summoner = cass.Summoner(id=summoner_id)
 
-		for x in match_history:
-			db = Match.objects.filter(match_id=x.id)
-			if db.exists():
-				m = MatchDB(x, summoner)
-			else:
-				m = MatchData(x, account_id, summoner_id, summoner_name_search)  # , key))
-				m.to_db()
-			games.append(m)
+		loop = asyncio.new_event_loop()
+		executor = concurrent.futures.ThreadPoolExecutor(max_workers=123)
+
+		try:
+			games = loop.run_until_complete(main(loop,executor, match_history, summoner, summoner_name_search))
+		finally:
+			loop.close()
+
 		try:
 			current_match = MatchData(summoner.current_match, account_id, summoner_id, summoner_name_search, False)
 		except NotFoundError:
@@ -600,23 +624,23 @@ class Search(TemplateView):
 			flex_win_rate = champ_win_ratios('flex', summoner)
 		if flex_stats == {} and solo_stats == {}:
 			return render(request, 'App.html', {'has_stats': False, 'Profile_Image': profile_url,
-			                                    'Summoner_Name': summoner_name_search, })
+												'Summoner_Name': summoner_name_search, })
 		else:
 			solo_index = tiers.index(solo_tier.lower())
 			flex_index = tiers.index(flex_tier.lower())
 			highest_tier = tiers[max(solo_index, flex_index)]
 			return render(request, 'App.html', {'has_stats': True,
-			                                    'Summoner_Name': summoner_name_search,
-			                                    'Solo': solo_stats_display,
-			                                    'SoloChamps': solo_win_rate[:5],
-			                                    'Profile_Image': profile_url,
-			                                    'Flex': flex_stats_display,
-			                                    'FlexChamps': flex_win_rate[:5],
-			                                    'highest_tier': highest_tier,
-			                                    'Queue_Type': str(match_history),
-			                                    'matches': games,
-			                                    'current_match': current_match,
-			                                    })
+												'Summoner_Name': summoner_name_search,
+												'Solo': solo_stats_display,
+												'SoloChamps': solo_win_rate[:5],
+												'Profile_Image': profile_url,
+												'Flex': flex_stats_display,
+												'FlexChamps': flex_win_rate[:5],
+												'highest_tier': highest_tier,
+												'Queue_Type': str(match_history),
+												'matches': games,
+												'current_match': current_match,
+												})
 
 
 """
