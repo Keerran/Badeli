@@ -51,9 +51,13 @@ async def main(loop, executor, matches, summoner):
 	]
 
 	completed, pending = await asyncio.wait(blocking_tasks)
-	results = [t.result() for t in completed]
-	games = [x[0] for x in results]
-	time = max([x[1] for x in results])
+	games = []
+	times = []
+	for t in completed:
+		x = t.result()
+		games.append(x[0])
+		times.append(x[1])
+	time = max(times)
 	return games, time
 
 

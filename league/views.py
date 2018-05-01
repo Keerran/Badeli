@@ -143,11 +143,8 @@ class Player:
 				self.win = 'Defeat'
 		self.summoner = participant.summoner
 		self.champ = Champion.objects.get(champion_id=participant.champion.id)
-		rank = participant.summoner.ranks.get(match.queue, None)
-		if rank is None:
-			self.rank = "Unranked"
-		else:
-			self.rank = str(rank).strip("<>")
+		self.rank = ""
+
 		self.champPhoto = self.champ.image
 		self.champName = self.champ.name
 		self.summoner_name = summonerName
@@ -236,11 +233,22 @@ class Player:
 				self.rune_secondary_2 = rune['name']
 				self.rune_secondary_2_desc = rune['shortDesc']"""
 
+	def get_rank(self):
+		if self.match.queue not in self.summoner.ranks:
+			self.rank = "Unranked"
+		else:
+			rank = self.summoner.ranks[self.match.queue]
+			self.rank = str(rank).strip("<>")
+
 	def to_db(self, match, data, i):
-		PlayerCall.objects.create(
-			account_id=self.summoner.account.id,
-			date=data.timestamp.replace(seconds=+1).naive
-		)
+		p = PlayerCall.objects.filter(account_id=self.summoner.account.id)
+		if p.exists():
+			p = p[0]
+			p.date = data.timestamp.replace(seconds=+1).naive
+		else:
+			p = PlayerCall.objects.create(account_id=self.summoner.account.id,
+										date=data.timestamp.replace(seconds=+1).naive)
+		p.save()
 		items = []
 		for item in self.items:
 			if item is None:
@@ -331,7 +339,7 @@ class PlayerDB:
 		self.item_ids = []
 		self.item_images = []
 		for i in range(6):
-			item = getattr(player, "item{0}".format(i+1))
+			item = getattr(player, "item{0}".format(i + 1))
 			if item is None:
 				self.item_ids.append(None)
 				self.item_images.append("")
@@ -382,12 +390,12 @@ class MatchData:
 
 		self.blue_team = []
 		self.red_team = []
-		if finished:
-			blue_team = sorted(game_info.blue_team.participants, key=get_index)
-			red_team = sorted(game_info.red_team.participants, key=get_index)
-		else:
-			blue_team = game_info.blue_team.participants
-			red_team = game_info.red_team.participants
+		# if finished:
+		# 	blue_team = sorted(game_info.blue_team.participants, key=get_index)
+		# 	red_team = sorted(game_info.red_team.participants, key=get_index)
+		# else:
+		blue_team = game_info.blue_team.participants
+		red_team = game_info.red_team.participants
 		for player in blue_team:
 			# data = player['player']
 			# participant_id = player['participantId']
@@ -407,11 +415,17 @@ class MatchData:
 				summoner_name = "<b>{0}</b>".format(summoner_name)
 			self.red_team.append(Player(self, player, summoner_name, finished, is_remake))
 
+	def get_ranks(self):
+		for player in self.blue_team + self.red_team:
+			player.get_rank()
+
 	def to_db(self):
 		m = Match.objects.create(
 			match_id=self.game_id,
 			queue_id=self.queue.id,
-			duration=self.duration_seconds)
+			duration=self.duration_seconds,
+			date=self.timestamp.naive
+		)
 		m.save()
 		for i, player in enumerate(self.blue_team):
 			player.to_db(m, self, i)
@@ -509,15 +523,14 @@ def blocking(x, summoner, summoner_name_search):
 
 async def main(loop, executor, matches, summoner, summoner_name_search):
 	blocking_tasks = [
-		loop.run_in_executor(executor,blocking,x, summoner, summoner_name_search)
+		loop.run_in_executor(executor, blocking, x, summoner, summoner_name_search)
 		for x in matches
 	]
 
 	completed, pending = await asyncio.wait(blocking_tasks)
-	results = [t.result() for t in completed]
-	for x in results:
-		if isinstance(x, MatchData):
-			x.to_db()
+	results = []
+	for t in completed:
+		results.append(t.result())
 
 	return results
 
@@ -572,23 +585,26 @@ class Search(TemplateView):
 		# match_history = key.match.matchlist_by_account(region, account_id, end_index=5)['matches']
 		# ms = PlayerCall.objects.filter(account_id=summoner.account.id)
 		# creation = ms.aggregate(Max('date'))['date__max']
-		ms = PlayerMatch.objects.filter(account_id=summoner.account.id)
+		ms = PlayerMatch.objects.filter(account_id=summoner.account.id).order_by("-match__date")
 		# print(creation)
 		# if creation is not None:
 		# 	creation = arrow.get(creation)
 		match_history = cass.MatchHistory(summoner=summoner, end_index=10)
 		print("CREATION {0}".format(len(match_history)))
-		ms = ms[:10-len(match_history)]
+		ms = ms[:10 - len(match_history)]
 		games = []
 
 		loop = asyncio.new_event_loop()
 		executor = concurrent.futures.ThreadPoolExecutor(max_workers=123)
 
 		try:
-			games = loop.run_until_complete(main(loop,executor, match_history, summoner, summoner_name_search))
+			games = loop.run_until_complete(main(loop, executor, match_history, summoner, summoner_name_search))
 		finally:
 			loop.close()
-
+		for x in games:
+			if isinstance(x, MatchData):
+				x.get_ranks()
+				x.to_db()
 		try:
 			current_match = MatchData(summoner.current_match, account_id, summoner_id, summoner_name_search, False)
 		except NotFoundError:
@@ -624,23 +640,23 @@ class Search(TemplateView):
 			flex_win_rate = champ_win_ratios('flex', summoner)
 		if flex_stats == {} and solo_stats == {}:
 			return render(request, 'App.html', {'has_stats': False, 'Profile_Image': profile_url,
-												'Summoner_Name': summoner_name_search, })
+			                                    'Summoner_Name': summoner_name_search, })
 		else:
 			solo_index = tiers.index(solo_tier.lower())
 			flex_index = tiers.index(flex_tier.lower())
 			highest_tier = tiers[max(solo_index, flex_index)]
 			return render(request, 'App.html', {'has_stats': True,
-												'Summoner_Name': summoner_name_search,
-												'Solo': solo_stats_display,
-												'SoloChamps': solo_win_rate[:5],
-												'Profile_Image': profile_url,
-												'Flex': flex_stats_display,
-												'FlexChamps': flex_win_rate[:5],
-												'highest_tier': highest_tier,
-												'Queue_Type': str(match_history),
-												'matches': games,
-												'current_match': current_match,
-												})
+			                                    'Summoner_Name': summoner_name_search,
+			                                    'Solo': solo_stats_display,
+			                                    'SoloChamps': solo_win_rate[:5],
+			                                    'Profile_Image': profile_url,
+			                                    'Flex': flex_stats_display,
+			                                    'FlexChamps': flex_win_rate[:5],
+			                                    'highest_tier': highest_tier,
+			                                    'Queue_Type': str(match_history),
+			                                    'matches': games,
+			                                    'current_match': current_match,
+			                                    })
 
 
 """

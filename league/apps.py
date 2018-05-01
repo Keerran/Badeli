@@ -9,4 +9,5 @@ class LeagueConfig(AppConfig):
 
 	def ready(self):
 		cass.set_riot_api_key(riot_key())
+		cass.apply_settings(cass.Settings({"logging": {"print_calls": False}}))
 		cass.set_default_region(cass.Region.europe_west)

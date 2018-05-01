@@ -99,7 +99,7 @@
 	{% if user.is_authenticated %}
 		<!-- if user is logged in then: -->
 		<form id="search" action='/search/' method='GET'>
-			<input type="text" name='summonerName' placeholder="Summoner Name..">
+			<input type="text" name='summonerName' placeholder="Summoner Name.." required/>
 			<button type="submit">.gg</button>
 		</form>
 

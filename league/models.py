@@ -62,6 +62,7 @@ class Match(models.Model):
 	match_id = models.IntegerField(primary_key=True)
 	queue_id = models.IntegerField()
 	duration = models.IntegerField()
+	date = models.DateTimeField()
 
 
 class PlayerCall(models.Model):
